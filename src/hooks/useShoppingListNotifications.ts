@@ -5,7 +5,6 @@ import type { ShoppingItem } from '@/types';
 import { useShoppingItems, useFamilyMembers } from './useFamilyData';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
-import { ToastAction } from "@/components/ui/toast";
 import { doc, updateDoc, Timestamp, arrayUnion } from 'firebase/firestore';
 import { db, app, getFcmToken, registerServiceWorker } from '@/lib/firebase';
 import { getMessaging, onMessage } from 'firebase/messaging';
@@ -97,12 +96,22 @@ export function useShoppingListNotifications() {
       return;
     }
     
-    // This logic handles real-time UI updates (e.g., for reminders) but delegates notifications to FCM
     if (isInitialLoadRef.current) {
         prevItemsRef.current = new Map(items.map(i => [i.id, i]));
         isInitialLoadRef.current = false;
     } else {
         const currentItems = new Map(items.map(i => [i.id, i]));
+
+        const playNotificationSound = () => {
+            if (!audioRef.current) {
+                audioRef.current = new Audio(notificationSoundPath);
+            }
+            audioRef.current.play().catch(e => console.error("Error playing sound:", e));
+             if ('vibrate' in navigator) {
+                navigator.vibrate(100);
+            }
+        };
+
         for (const [id, newItem] of currentItems.entries()) {
             const oldItem = prevItemsRef.current.get(id);
             if (!oldItem && newItem.addedBy !== user?.uid) {
@@ -111,12 +120,14 @@ export function useShoppingListNotifications() {
                     title: "New Item Added",
                     description: `${memberName} added "${newItem.name}" to the list.`,
                 });
+                playNotificationSound();
             } else if (oldItem && newItem.purchased && !oldItem.purchased && newItem.purchasedBy !== user?.uid) {
                  const memberName = membersMap[newItem.purchasedBy!] || 'Someone';
                  toast({
                     title: "Item Purchased",
                     description: `✔ "${newItem.name}" was marked as bought by ${memberName}.`,
                 });
+                playNotificationSound();
             }
         }
         prevItemsRef.current = currentItems;
