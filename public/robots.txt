@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /login/
+Disallow: /signup/
+Disallow: /join-family/
+Disallow: /dashboard/
+Disallow: /expenses/
+Disallow: /earnings/
+Disallow: /settings/
+
+Sitemap: https://balance.fixbro.in/sitemap.xml

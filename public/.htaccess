@@ -1,0 +1,9 @@
+# This is a sample .htaccess file.
+# Note: This file is for Apache servers and may not have an effect on all hosting environments.
+
+# Rewrite engine
+RewriteEngine On
+
+# Redirect non-www to www
+RewriteCond %{HTTP_HOST} !^www\.
+RewriteRule ^(.*)$ http://www.%{HTTP_HOST}/$1 [R=301,L]
