@@ -178,18 +178,18 @@ export function ShoppingList() {
         </div>
         <div className="flex items-center">
           <Button
-              variant="ghost"
+              variant="soft"
               size="icon"
               onClick={() => setReminderItem(item)}
-              className={cn("text-muted-foreground hover:text-accent h-8 w-8", item.reminderAt && "text-accent")}
+              className={cn("h-8 w-8", item.reminderAt && "bg-accent text-accent-foreground")}
             >
               <AlarmClock className="h-4 w-4" />
           </Button>
           <Button
-            variant="ghost"
+            variant="soft-destructive"
             size="icon"
             onClick={() => deleteItem(item.id)}
-            className="text-muted-foreground hover:text-destructive h-8 w-8"
+            className="h-8 w-8"
           >
             <Trash2 className="h-4 w-4" />
           </Button>

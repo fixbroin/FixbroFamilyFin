@@ -190,13 +190,10 @@ function IndividualSummary() {
                 <div className="flex gap-2 bg-gray-100 p-1 rounded-full border border-gray-200">
     
     <Button 
-        variant="ghost" 
+        variant="soft" 
         size="icon" 
         onClick={goToPreviousMonth} 
-        className="h-8 w-8 rounded-full 
-                   bg-blue-100 text-blue-600 
-                   hover:bg-blue-600 hover:text-white 
-                   transition-all duration-200"
+        className="h-8 w-8 rounded-full"
     >
         <ChevronLeft className="h-4 w-4" />
     </Button>
@@ -206,15 +203,11 @@ function IndividualSummary() {
     </div>
 
     <Button 
-        variant="ghost" 
+        variant="soft" 
         size="icon" 
         onClick={goToNextMonth} 
         disabled={isNextMonthDisabled} 
-        className="h-8 w-8 rounded-full 
-                   bg-blue-100 text-blue-600 
-                   hover:bg-blue-600 hover:text-white 
-                   transition-all duration-200 
-                   disabled:opacity-30"
+        className="h-8 w-8 rounded-full"
     >
         <ChevronRight className="h-4 w-4" />
     </Button>

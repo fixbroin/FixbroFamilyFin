@@ -93,12 +93,12 @@ export function SetReminderDialog({ item, onClose, onSave, onClear }: SetReminde
         </div>
         <DialogFooter className="sm:justify-between">
           {item.reminderAt ? 
-            <Button variant="destructive" onClick={onClear}>Clear Reminder</Button>
+            <Button variant="soft-destructive" onClick={onClear}>Clear Reminder</Button>
             : <div></div>
           }
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleSave}>Save Reminder</Button>
+            <Button variant="soft" onClick={onClose}>Cancel</Button>
+            <Button onClick={handleSave} className="bg-accent text-accent-foreground hover:bg-accent/90">Save Reminder</Button>
           </div>
         </DialogFooter>
       </DialogContent>

@@ -68,7 +68,7 @@ export function Header() {
                 <span>{family.name}</span>
               </div>
             )}
-             <Button variant="ghost" size="icon" asChild className="relative h-8 w-8">
+             <Button variant="soft" size="icon" asChild className="relative h-8 w-8">
               <Link href="/notifications">
                 <Bell className="h-5 w-5" />
                  {notificationCount > 0 && (

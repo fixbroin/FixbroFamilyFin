@@ -171,9 +171,9 @@ export function ExpenseList() {
                   {item.addedBy === user?.uid && (
                     <div className="flex items-center gap-1">
                       <Button 
-                        variant="ghost" 
+                        variant="soft" 
                         size="icon" 
-                        className="h-8 w-8 bg-secondary/50 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                        className="h-8 w-8"
                         onClick={() => setEditingExpense(item)}
                       >
                         <Pencil className="h-4 w-4" />
@@ -181,9 +181,9 @@ export function ExpenseList() {
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button 
-                            variant="ghost" 
+                            variant="soft-destructive" 
                             size="icon" 
-                            className="h-8 w-8 bg-red-50 text-red-500 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                            className="h-8 w-8"
                             disabled={deleting === item.id}
                           >
                              {deleting === item.id ? <Loader className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
