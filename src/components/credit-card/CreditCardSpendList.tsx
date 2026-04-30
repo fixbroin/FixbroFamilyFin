@@ -4,13 +4,13 @@ import { useMemo, useState } from "react";
 import { doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
-import { useCreditCardSpends } from "@/hooks/useFamilyData";
+import { useCreditCardSpends, useFamilyMembers } from "@/hooks/useFamilyData";
 import type { CreditCardSpend } from "@/types";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Loader } from "@/components/ui/loader";
 import {
@@ -36,6 +36,7 @@ export function CreditCardSpendList() {
   }), [displayDate]);
 
   const { data: spends, loading: spendsLoading } = useCreditCardSpends(startDate, endDate);
+  const { data: members, loading: membersLoading } = useFamilyMembers();
   const { toast } = useToast();
   const [deleting, setDeleting] = useState<string | null>(null);
 
@@ -43,8 +44,12 @@ export function CreditCardSpendList() {
 
   const filteredSpends = useMemo(() => {
     if (!user) return [];
-    return spends;
-  }, [spends, user]);
+    const hiddenUserIds = new Set(members.filter(m => m.isFinancialDataHidden).map(m => m.uid));
+
+    return spends
+      .filter(spend => !hiddenUserIds.has(spend.addedBy) || spend.addedBy === user.uid)
+      .filter(spend => !spend.isPrivate || spend.addedBy === user.uid);
+  }, [spends, user, members]);
 
   const totalSpend = useMemo(() => {
     return filteredSpends.reduce((sum, item) => sum + item.amount, 0);
@@ -77,7 +82,8 @@ export function CreditCardSpendList() {
     return displayDate.getMonth() === today.getMonth() && displayDate.getFullYear() === today.getFullYear();
   }
 
-  if (spendsLoading) {
+  const loading = spendsLoading || membersLoading;
+  if (loading) {
     return <div className="flex justify-center mt-8"><Loader /></div>;
   }
 
@@ -119,7 +125,10 @@ export function CreditCardSpendList() {
                   <div className="flex items-center gap-4 p-2 rounded-md">
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between">
-                        <p className="font-semibold">{item.name}</p>
+                        <div className="flex items-center gap-2">
+                            <p className="font-semibold">{item.name}</p>
+                            {item.isPrivate && <Lock className="h-3 w-3 text-muted-foreground" />}
+                        </div>
                         <p className="font-semibold text-lg">{currencySymbol}{item.amount.toFixed(2)}</p>
                       </div>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
