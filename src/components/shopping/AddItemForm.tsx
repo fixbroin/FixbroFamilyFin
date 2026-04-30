@@ -152,6 +152,7 @@ export function AddItemForm() {
         purchased: false,
         addedBy: user.uid,
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
       form.reset({
         name: "",

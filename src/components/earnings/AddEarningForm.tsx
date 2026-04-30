@@ -145,6 +145,7 @@ export function AddEarningForm() {
         date: Timestamp.fromDate(values.date),
         addedBy: user.uid,
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
       toast({ title: "Success", description: "Earning added successfully." });
       form.reset({

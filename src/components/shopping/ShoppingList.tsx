@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { doc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc, Timestamp, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useShoppingItems, useShoppingCategories } from "@/hooks/useFamilyData";
@@ -42,6 +42,7 @@ export function ShoppingList() {
       await updateDoc(itemRef, {
         purchased: newPurchasedState,
         purchasedBy: newPurchasedState ? user.uid : null,
+        updatedAt: serverTimestamp(),
       });
     } catch (error: any) {
       if (error.code === 'not-found') {
@@ -74,6 +75,7 @@ export function ShoppingList() {
       await updateDoc(itemRef, {
         reminderAt: Timestamp.fromDate(date),
         remindedBy: user.uid,
+        updatedAt: serverTimestamp(),
       });
       toast({ title: "Reminder Set!", description: `You'll be reminded to buy ${reminderItem.name}.` });
       setReminderItem(null);
@@ -98,6 +100,7 @@ export function ShoppingList() {
       await updateDoc(itemRef, {
         reminderAt: null,
         remindedBy: null,
+        updatedAt: serverTimestamp(),
       });
       toast({ title: "Reminder Cleared", description: `The reminder for ${reminderItem.name} has been removed.` });
       setReminderItem(null);

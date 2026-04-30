@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "@/lib/firebase";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -85,7 +85,10 @@ function ProfileSettings() {
             await updateProfile(user, { photoURL });
             
             const userDocRef = doc(db, "users", user.uid);
-            await updateDoc(userDocRef, { photoURL });
+            await updateDoc(userDocRef, { 
+                photoURL,
+                updatedAt: serverTimestamp()
+            });
             
             toast({ title: "Success", description: "Profile photo updated." });
         } catch (error: any) {
@@ -102,7 +105,10 @@ function ProfileSettings() {
         try {
             await updateProfile(user, { displayName: values.name });
             const userDocRef = doc(db, "users", user.uid);
-            await updateDoc(userDocRef, { name: values.name });
+            await updateDoc(userDocRef, { 
+                name: values.name,
+                updatedAt: serverTimestamp()
+            });
             toast({ title: "Success", description: "Your name has been updated." });
         } catch (error: any) {
             toast({ variant: "destructive", title: "Error", description: error.message });
@@ -263,7 +269,10 @@ function FamilySettings() {
         setIsSubmitting(true);
         try {
             const familyDocRef = doc(db, "families", family.id);
-            await updateDoc(familyDocRef, { name: values.name });
+            await updateDoc(familyDocRef, { 
+                name: values.name,
+                updatedAt: serverTimestamp()
+            });
             toast({ title: "Success", description: "Family name updated." });
             setIsEditingName(false);
         } catch (error: any) {
@@ -363,7 +372,8 @@ function CurrencySettings() {
             const familyDocRef = doc(db, "families", family.id);
             await updateDoc(familyDocRef, { 
                 currency: selectedCurrency.code,
-                currencySymbol: selectedCurrency.symbol 
+                currencySymbol: selectedCurrency.symbol,
+                updatedAt: serverTimestamp()
             });
             toast({ title: "Success", description: `Currency updated to ${selectedCurrency.name}.` });
         } catch (error: any) {
@@ -411,7 +421,10 @@ function PrivacySettings() {
         setLoadingField(field);
         try {
             const userDocRef = doc(db, "users", user.uid);
-            await updateDoc(userDocRef, { [field]: value });
+            await updateDoc(userDocRef, { 
+                [field]: value,
+                updatedAt: serverTimestamp()
+            });
             toast({ title: "Success", description: "Privacy settings updated." });
         } catch (error: any) {
             toast({ variant: "destructive", title: "Error", description: error.message });
@@ -509,7 +522,10 @@ function NotificationSettings() {
         setLoading(true);
         try {
             const userDocRef = doc(db, "users", user.uid);
-            await updateDoc(userDocRef, { notificationSound: soundPath });
+            await updateDoc(userDocRef, { 
+                notificationSound: soundPath,
+                updatedAt: serverTimestamp()
+            });
 
             const audio = new Audio(soundPath);
             audio.play().catch(e => {

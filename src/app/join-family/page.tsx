@@ -92,21 +92,37 @@ export default function JoinFamilyPage() {
         members: [user.uid],
         inviteCode: inviteCode,
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
         currency: 'INR',
         currencySymbol: '₹'
       });
 
       const expenseCatRef = collection(db, "families", familyRef.id, "expenseCategories");
-      defaultExpenseCategories.forEach(name => batch.set(doc(expenseCatRef), { name }));
+      defaultExpenseCategories.forEach(name => batch.set(doc(expenseCatRef), { 
+        name,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }));
 
       const earningCatRef = collection(db, "families", familyRef.id, "earningCategories");
-      defaultEarningCategories.forEach(name => batch.set(doc(earningCatRef), { name }));
+      defaultEarningCategories.forEach(name => batch.set(doc(earningCatRef), { 
+        name,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }));
       
       const shoppingCatRef = collection(db, "families", familyRef.id, "shoppingCategories");
-      defaultShoppingCategories.forEach(name => batch.set(doc(shoppingCatRef), { name }));
+      defaultShoppingCategories.forEach(name => batch.set(doc(shoppingCatRef), { 
+        name,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }));
 
       const userDocRef = doc(db, "users", user.uid);
-      batch.update(userDocRef, { familyId: familyRef.id });
+      batch.update(userDocRef, { 
+        familyId: familyRef.id,
+        updatedAt: serverTimestamp()
+      });
 
       await batch.commit();
 
@@ -139,10 +155,14 @@ export default function JoinFamilyPage() {
       const familyDocRef = doc(db, "families", familyDoc.id);
       batch.update(familyDocRef, {
         members: arrayUnion(user.uid),
+        updatedAt: serverTimestamp()
       });
 
       const userDocRef = doc(db, "users", user.uid);
-      batch.update(userDocRef, { familyId: familyDoc.id });
+      batch.update(userDocRef, { 
+        familyId: familyDoc.id,
+        updatedAt: serverTimestamp()
+      });
       
       await batch.commit();
       

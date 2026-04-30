@@ -64,6 +64,7 @@ export function AddCreditCardSpendForm() {
         date: Timestamp.fromDate(values.date),
         addedBy: user.uid,
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
       toast({ title: "Success", description: "Credit card spend added successfully." });
       form.reset({

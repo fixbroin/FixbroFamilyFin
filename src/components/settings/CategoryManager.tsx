@@ -13,6 +13,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -75,7 +76,10 @@ export function CategoryManager({ title, categoryType }: CategoryManagerProps) {
     setIsAdding(true);
     try {
       const categoriesRef = collection(db, "families", family.id, collectionName);
-      const data: any = { name: newCategoryName.trim() };
+      const data: any = { 
+        name: newCategoryName.trim(),
+        updatedAt: serverTimestamp()
+      };
       if (categoryType === 'expense' && newCategoryBudget) {
           data.budget = parseFloat(newCategoryBudget) || 0;
       }
@@ -95,7 +99,10 @@ export function CategoryManager({ title, categoryType }: CategoryManagerProps) {
     setUpdatingId(categoryId);
     try {
       const categoryRef = doc(db, "families", family.id, collectionName, categoryId);
-      await updateDoc(categoryRef, { budget: parseFloat(budget) || 0 });
+      await updateDoc(categoryRef, { 
+        budget: parseFloat(budget) || 0,
+        updatedAt: serverTimestamp()
+      });
       toast({ title: "Budget updated" });
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Could not update budget." });

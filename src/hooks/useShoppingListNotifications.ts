@@ -5,7 +5,7 @@ import type { ShoppingItem } from '@/types';
 import { useShoppingItems, useFamilyMembers } from './useFamilyData';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
-import { doc, updateDoc, Timestamp, arrayUnion } from 'firebase/firestore';
+import { doc, updateDoc, Timestamp, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { db, app, getFcmToken, registerServiceWorker } from '@/lib/firebase';
 import { getMessaging, onMessage } from 'firebase/messaging';
 
@@ -70,7 +70,10 @@ export function useShoppingListNotifications() {
         if (token) {
           const userDocRef = doc(db, "users", user.uid);
           if (!userProfile.fcmTokens?.includes(token)) {
-              updateDoc(userDocRef, { fcmTokens: arrayUnion(token) });
+              updateDoc(userDocRef, { 
+                fcmTokens: arrayUnion(token),
+                updatedAt: serverTimestamp()
+              });
           }
           tokenSavedRef.current = true;
         }
@@ -85,6 +88,7 @@ export function useShoppingListNotifications() {
         await updateDoc(itemRef, {
           reminderAt: null,
           remindedBy: null,
+          updatedAt: serverTimestamp(),
         });
       } catch(e) {
         console.error("Failed to clear reminder", e)
