@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useCreditCardSpends } from "@/hooks/useFamilyData";
 import type { CreditCardSpend } from "@/types";
-import { format, addMonths, subMonths } from "date-fns";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,25 +28,23 @@ import { useToast } from "@/hooks/use-toast";
 
 export function CreditCardSpendList() {
   const { user, family } = useAuth();
-  const { data: spends, loading: spendsLoading } = useCreditCardSpends();
+  const [displayDate, setDisplayDate] = useState(new Date());
+
+  const { startDate, endDate } = useMemo(() => ({
+    startDate: startOfMonth(displayDate),
+    endDate: endOfMonth(displayDate)
+  }), [displayDate]);
+
+  const { data: spends, loading: spendsLoading } = useCreditCardSpends(startDate, endDate);
   const { toast } = useToast();
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [displayDate, setDisplayDate] = useState(new Date());
 
   const currencySymbol = useMemo(() => family?.currencySymbol || '₹', [family]);
 
   const filteredSpends = useMemo(() => {
     if (!user) return [];
-    
-    const displayMonth = displayDate.getMonth();
-    const displayYear = displayDate.getFullYear();
-
-    return spends
-      .filter(item => {
-        const itemDate = item.date.toDate();
-        return itemDate.getMonth() === displayMonth && itemDate.getFullYear() === displayYear;
-      });
-  }, [spends, user, displayDate]);
+    return spends;
+  }, [spends, user]);
 
   const totalSpend = useMemo(() => {
     return filteredSpends.reduce((sum, item) => sum + item.amount, 0);

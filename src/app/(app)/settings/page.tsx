@@ -412,7 +412,7 @@ function PrivacySettings() {
     const { toast } = useToast();
     const [loadingField, setLoadingField] = useState<string | null>(null);
 
-    const handleToggle = async (field: 'defaultExpensesToPrivate' | 'defaultEarningsToPrivate' | 'isFinancialDataHidden', value: boolean) => {
+    const handleToggle = async (field: 'defaultExpensesToPrivate' | 'defaultEarningsToPrivate' | 'defaultCCSpendsToPrivate' | 'isFinancialDataHidden', value: boolean) => {
         if (!user) return;
         setLoadingField(field);
         try {
@@ -459,6 +459,20 @@ function PrivacySettings() {
                         onCheckedChange={(value) => handleToggle('defaultEarningsToPrivate', value)}
                         disabled={loadingField === 'defaultEarningsToPrivate'}
                         aria-label="Default earnings to private"
+                    />
+                </div>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                        <Label className="font-medium">Default CC Spends to Private</Label>
+                        <p className="text-sm text-muted-foreground">
+                            Automatically mark new credit card spends as private.
+                        </p>
+                    </div>
+                    <Switch
+                        checked={!!userProfile?.defaultCCSpendsToPrivate}
+                        onCheckedChange={(value) => handleToggle('defaultCCSpendsToPrivate', value)}
+                        disabled={loadingField === 'defaultCCSpendsToPrivate'}
+                        aria-label="Default CC spends to private"
                     />
                 </div>
                 <Separator />

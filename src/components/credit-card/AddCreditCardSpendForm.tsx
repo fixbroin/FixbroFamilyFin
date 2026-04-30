@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,20 +16,23 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Plus } from "lucide-react";
+import { CalendarIcon, Plus, Lock } from "lucide-react";
 import { Loader } from "../ui/loader";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Item name cannot be empty." }),
   amount: z.coerce.number().min(0.01, { message: "Amount must be greater than 0." }),
   date: z.date(),
+  isPrivate: z.boolean().default(false),
 });
 
 export function AddCreditCardSpendForm() {
-  const { user, family } = useAuth();
+  const { user, family, userProfile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [profileDefaultsSet, setProfileDefaultsSet] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,8 +40,16 @@ export function AddCreditCardSpendForm() {
       name: "",
       amount: undefined,
       date: new Date(),
+      isPrivate: false,
     },
   });
+
+  useEffect(() => {
+    if (userProfile && !profileDefaultsSet) {
+      form.setValue('isPrivate', !!userProfile.defaultCCSpendsToPrivate);
+      setProfileDefaultsSet(true);
+    }
+  }, [userProfile, profileDefaultsSet, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user || !family) {
@@ -60,6 +71,7 @@ export function AddCreditCardSpendForm() {
         name: "",
         amount: undefined,
         date: new Date(),
+        isPrivate: !!userProfile?.defaultCCSpendsToPrivate
       });
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Could not add spend. Please try again." });
@@ -143,7 +155,22 @@ export function AddCreditCardSpendForm() {
               />
             </div>
             
-            <div className="flex items-center justify-end pt-2">
+            <div className="flex items-center justify-between pt-2">
+                <FormField
+                control={form.control}
+                name="isPrivate"
+                render={({ field }) => (
+                    <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                    <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel className="font-normal cursor-pointer flex items-center gap-1">
+                        Private Spend {field.value && <Lock className="h-3 w-3 text-muted-foreground" />}
+                    </FormLabel>
+                    </FormItem>
+                )}
+                />
+
                 <Button type="submit" disabled={loading} className="bg-accent text-accent-foreground hover:bg-accent/90">
                 {loading ? <Loader /> : <Plus className="h-4 w-4 mr-2" />}
                 Add Spend

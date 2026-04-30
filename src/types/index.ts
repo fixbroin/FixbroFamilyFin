@@ -8,6 +8,7 @@ export interface UserProfile {
   photoURL?: string;
   defaultExpensesToPrivate?: boolean;
   defaultEarningsToPrivate?: boolean;
+  defaultCCSpendsToPrivate?: boolean;
   notificationSound?: string;
   fcmTokens?: string[];
   isFinancialDataHidden?: boolean;
@@ -26,6 +27,7 @@ export interface Family {
 export interface Category {
   id: string;
   name: string;
+  budget?: number;
 }
 
 export interface Expense {

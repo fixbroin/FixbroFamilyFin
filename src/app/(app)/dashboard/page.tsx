@@ -7,24 +7,34 @@ import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories, u
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader } from '@/components/ui/loader';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { format, subMonths, getMonth, getYear, startOfMonth, addMonths } from 'date-fns';
+import { format, subMonths, getMonth, getYear, startOfMonth, addMonths, endOfMonth } from 'date-fns';
 import { TrendingUp, TrendingDown, Wallet, ArrowDownCircle, ArrowUpCircle, Lock, MinusCircle, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
 import type { Expense, Earning } from '@/types';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
 
 
 function FinancialSummary() {
     const { user, family } = useAuth();
-    const { data: expenses, loading: expensesLoading } = useExpenses();
-    const { data: earnings, loading: earningsLoading } = useEarnings();
-    const { data: creditCardSpends, loading: ccLoading } = useCreditCardSpends();
+    const [displayDate, setDisplayDate] = useState(new Date());
+
+    const { startDate, endDate, currentMonthStart } = useMemo(() => ({
+        startDate: startOfMonth(subMonths(displayDate, 5)),
+        currentMonthStart: startOfMonth(displayDate),
+        endDate: endOfMonth(displayDate)
+    }), [displayDate]);
+
+    // Fetch 6 months of data to restore the 6-month overview chart
+    const { data: expenses, loading: expensesLoading } = useExpenses(startDate, endDate);
+    const { data: earnings, loading: earningsLoading } = useEarnings(startDate, endDate);
+    const { data: creditCardSpends, loading: ccLoading } = useCreditCardSpends(currentMonthStart, endDate);
+    
     const { data: expenseCategories, loading: expenseCatLoading } = useExpenseCategories();
     const { data: earningCategories, loading: earningCatLoading } = useEarningCategories();
     const { data: members, loading: membersLoading } = useFamilyMembers();
-    const [displayDate, setDisplayDate] = useState(new Date());
 
     const currencySymbol = useMemo(() => family?.currencySymbol || '₹', [family]);
 
@@ -32,61 +42,55 @@ function FinancialSummary() {
         return new Set(members.filter(m => m.isFinancialDataHidden).map(m => m.uid));
     }, [members]);
 
-    const { visibleExpenses, visibleEarnings } = useMemo(() => {
-        if (!user) return { visibleExpenses: [], visibleEarnings: [] };
-        const myVisibleExpenses = expenses.filter(expense => !hiddenUserIds.has(expense.addedBy) || expense.addedBy === user.uid);
-        const myVisibleEarnings = earnings.filter(earning => !hiddenUserIds.has(earning.addedBy) || earning.addedBy === user.uid);
-        return { visibleExpenses: myVisibleExpenses, visibleEarnings: myVisibleEarnings };
-    }, [expenses, earnings, user, hiddenUserIds]);
+    const { visibleExpenses, visibleEarnings, visibleCCSpends } = useMemo(() => {
+        if (!user) return { visibleExpenses: [], visibleEarnings: [], visibleCCSpends: [] };
+        
+        const myVisibleExpenses = expenses.filter(expense => 
+            (!hiddenUserIds.has(expense.addedBy) || expense.addedBy === user.uid) &&
+            (!expense.isPrivate || expense.addedBy === user.uid)
+        );
+        
+        const myVisibleEarnings = earnings.filter(earning => 
+            (!hiddenUserIds.has(earning.addedBy) || earning.addedBy === user.uid) &&
+            (!earning.isPrivate || earning.addedBy === user.uid)
+        );
 
-    const { monthlyExpenses, monthlyEarnings, monthlyCCSpends, lastMonthBalance, balance } = useMemo(() => {
+        const myVisibleCCSpends = creditCardSpends.filter(spend => 
+            (!hiddenUserIds.has(spend.addedBy) || spend.addedBy === user.uid) &&
+            (!spend.isPrivate || spend.addedBy === user.uid)
+        );
+
+        return { 
+            visibleExpenses: myVisibleExpenses, 
+            visibleEarnings: myVisibleEarnings,
+            visibleCCSpends: myVisibleCCSpends
+        };
+    }, [expenses, earnings, creditCardSpends, user, hiddenUserIds]);
+
+    const { monthlyExpenses, monthlyEarnings, monthlyCCSpends, balance } = useMemo(() => {
         const currentMonth = displayDate.getMonth();
         const currentYear = displayDate.getFullYear();
-        
-        const prevMonthDate = subMonths(displayDate, 1);
-        const prevMonth = prevMonthDate.getMonth();
-        const prevMonthYear = prevMonthDate.getFullYear();
 
-        const currentMonthExpenses = visibleExpenses.filter(expense => {
-            const expenseDate = expense.date.toDate();
-            return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
-        }).reduce((acc, expense) => acc + expense.amount, 0);
+        const currentMonthExpenses = visibleExpenses
+            .filter(e => e.date.toDate().getMonth() === currentMonth && e.date.toDate().getFullYear() === currentYear)
+            .reduce((acc, expense) => acc + expense.amount, 0);
 
-        const currentMonthEarnings = visibleEarnings.filter(earning => {
-            const earningDate = earning.date.toDate();
-            return earningDate.getMonth() === currentMonth && earningDate.getFullYear() === currentYear;
-        }).reduce((acc, earning) => acc + earning.amount, 0);
+        const currentMonthEarnings = visibleEarnings
+            .filter(e => e.date.toDate().getMonth() === currentMonth && e.date.toDate().getFullYear() === currentYear)
+            .reduce((acc, earning) => acc + earning.amount, 0);
 
-        const currentMonthCCSpends = creditCardSpends.filter(spend => {
-            const spendDate = spend.date.toDate();
-            return spendDate.getMonth() === currentMonth && spendDate.getFullYear() === currentYear;
-        }).reduce((acc, spend) => acc + spend.amount, 0);
+        const currentMonthCCSpends = visibleCCSpends.reduce((acc, spend) => acc + spend.amount, 0);
 
-        const lastMonthExpenses = visibleExpenses.filter(expense => {
-            const expenseDate = expense.date.toDate();
-            return expenseDate.getMonth() === prevMonth && expenseDate.getFullYear() === prevMonthYear;
-        }).reduce((acc, expense) => acc + expense.amount, 0);
-
-        const lastMonthEarnings = visibleEarnings.filter(earning => {
-            const earningDate = earning.date.toDate();
-            return earningDate.getMonth() === prevMonth && earningDate.getFullYear() === prevMonthYear;
-        }).reduce((acc, earning) => acc + earning.amount, 0);
-
-        const totalExpenses = visibleExpenses.reduce((acc, expense) => acc + expense.amount, 0);
-        const totalEarnings = visibleEarnings.reduce((acc, earning) => acc + earning.amount, 0);
-        const overallBalance = totalEarnings - totalExpenses;
-        
         return { 
             monthlyExpenses: currentMonthExpenses, 
             monthlyEarnings: currentMonthEarnings, 
             monthlyCCSpends: currentMonthCCSpends,
-            lastMonthBalance: lastMonthEarnings - lastMonthExpenses,
-            balance: overallBalance 
+            balance: currentMonthEarnings - currentMonthExpenses 
         };
-    }, [visibleExpenses, visibleEarnings, creditCardSpends, displayDate]);
+    }, [visibleExpenses, visibleEarnings, visibleCCSpends, displayDate]);
 
     const chartData = useMemo(() => {
-        const months = Array.from({ length: 6 }, (_, i) => subMonths(new Date(), 5 - i));
+        const months = Array.from({ length: 6 }, (_, i) => subMonths(displayDate, 5 - i));
         const data = months.map(month => ({
             name: format(month, 'MMM'),
             year: getYear(month),
@@ -95,34 +99,28 @@ function FinancialSummary() {
             Earnings: 0,
         }));
 
-        const sixMonthsAgo = startOfMonth(subMonths(new Date(), 5));
-
         visibleExpenses.forEach(expense => {
             const expenseDate = expense.date.toDate();
-            if (expenseDate >= sixMonthsAgo) {
-                const expenseMonth = getMonth(expenseDate);
-                const expenseYear = getYear(expenseDate);
-                const monthData = data.find(d => d.month === expenseMonth && d.year === expenseYear);
-                if (monthData) {
-                    monthData.Expenses += expense.amount;
-                }
+            const expenseMonth = getMonth(expenseDate);
+            const expenseYear = getYear(expenseDate);
+            const monthData = data.find(d => d.month === expenseMonth && d.year === expenseYear);
+            if (monthData) {
+                monthData.Expenses += expense.amount;
             }
         });
 
         visibleEarnings.forEach(earning => {
             const earningDate = earning.date.toDate();
-            if (earningDate >= sixMonthsAgo) {
-                const earningMonth = getMonth(earningDate);
-                const earningYear = getYear(earningDate);
-                const monthData = data.find(d => d.month === earningMonth && d.year === earningYear);
-                if (monthData) {
-                    monthData.Earnings += earning.amount;
-                }
+            const earningMonth = getMonth(earningDate);
+            const earningYear = getYear(earningDate);
+            const monthData = data.find(d => d.month === earningMonth && d.year === earningYear);
+            if (monthData) {
+                monthData.Earnings += earning.amount;
             }
         });
 
         return data;
-    }, [visibleExpenses, visibleEarnings]);
+    }, [visibleExpenses, visibleEarnings, displayDate]);
     
     const expenseCategoriesMap = useMemo(() => {
         return expenseCategories.reduce((acc, cat) => {
@@ -137,6 +135,27 @@ function FinancialSummary() {
           return acc;
         }, {} as Record<string, string>);
     }, [earningCategories]);
+
+    const budgetData = useMemo(() => {
+        const categorySpending: Record<string, number> = {};
+        visibleExpenses.forEach(exp => {
+            categorySpending[exp.categoryId] = (categorySpending[exp.categoryId] || 0) + exp.amount;
+        });
+
+        return expenseCategories
+            .filter(cat => cat.budget && cat.budget > 0)
+            .map(cat => {
+                const spent = categorySpending[cat.id] || 0;
+                const budget = cat.budget || 0;
+                const percentage = Math.min((spent / budget) * 100, 100);
+                return {
+                    ...cat,
+                    spent,
+                    percentage,
+                    isOverBudget: spent > budget
+                };
+            });
+    }, [visibleExpenses, expenseCategories]);
 
     const recentExpenses = useMemo(() => {
         if (!user) return [];
@@ -215,7 +234,7 @@ function FinancialSummary() {
                     </Button>
                 </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Monthly Earnings</CardTitle>
@@ -245,28 +264,13 @@ function FinancialSummary() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            {lastMonthBalance >= 0 ? "Last Month's Savings" : "Last Month's Deficit"}
-                        </CardTitle>
-                        {lastMonthBalance >= 0 ? (
-                            <TrendingUp className="h-4 w-4 text-emerald-500" />
-                        ) : (
-                            <TrendingDown className="h-4 w-4 text-rose-500" />
-                        )}
-                    </CardHeader>
-                    <CardContent>
-                        <div className={cn("text-2xl font-bold", lastMonthBalance >= 0 ? "text-emerald-500" : "text-rose-500")}>
-                            {lastMonthBalance < 0 ? "-" : ""}{currencySymbol}{Math.abs(lastMonthBalance).toFixed(2)}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+                        <CardTitle className="text-sm font-medium">Monthly Savings</CardTitle>
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{currencySymbol}{balance.toFixed(2)}</div>
+                        <div className={cn("text-2xl font-bold", balance >= 0 ? "text-emerald-500" : "text-rose-500")}>
+                            {currencySymbol}{balance.toFixed(2)}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -294,6 +298,43 @@ function FinancialSummary() {
                     </ResponsiveContainer>
                 </CardContent>
             </Card>
+
+            {budgetData.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Monthly Budgets</CardTitle>
+                        <CardDescription>Track your spending against your set monthly limits.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid gap-6 md:grid-cols-2">
+                            {budgetData.map((budget) => (
+                                <div key={budget.id} className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="font-medium">{budget.name}</span>
+                                        <span className={cn("font-bold", budget.isOverBudget ? "text-rose-500" : "text-muted-foreground")}>
+                                            {currencySymbol}{budget.spent.toFixed(0)} / {currencySymbol}{budget.budget?.toFixed(0)}
+                                        </span>
+                                    </div>
+                                    <Progress 
+                                        value={budget.percentage} 
+                                        className={cn(
+                                            "h-2",
+                                            budget.percentage > 90 ? "[&>div]:bg-rose-500" : 
+                                            budget.percentage > 70 ? "[&>div]:bg-orange-500" : 
+                                            "[&>div]:bg-emerald-500"
+                                        )} 
+                                    />
+                                    <p className="text-[10px] text-muted-foreground text-right italic">
+                                        {budget.isOverBudget 
+                                            ? `Over by ${currencySymbol}${(budget.spent - (budget.budget || 0)).toFixed(0)}!` 
+                                            : `${(100 - budget.percentage).toFixed(0)}% remaining`}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             <div className="grid gap-6 md:grid-cols-2">
                 <Card>
@@ -369,5 +410,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

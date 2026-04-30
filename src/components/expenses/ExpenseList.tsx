@@ -7,7 +7,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useExpenses, useExpenseCategories, useFamilyMembers } from "@/hooks/useFamilyData";
 import type { Expense } from "@/types";
-import { format, addMonths, subMonths } from "date-fns";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,12 +29,18 @@ import { useToast } from "@/hooks/use-toast";
 
 export function ExpenseList() {
   const { user, family } = useAuth();
-  const { data: expenses, loading: expensesLoading } = useExpenses();
+  const [displayDate, setDisplayDate] = useState(new Date());
+
+  const { startDate, endDate } = useMemo(() => ({
+    startDate: startOfMonth(displayDate),
+    endDate: endOfMonth(displayDate)
+  }), [displayDate]);
+
+  const { data: expenses, loading: expensesLoading } = useExpenses(startDate, endDate);
   const { data: categories, loading: categoriesLoading } = useExpenseCategories();
   const { data: members, loading: membersLoading } = useFamilyMembers();
   const { toast } = useToast();
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [displayDate, setDisplayDate] = useState(new Date());
 
   const currencySymbol = useMemo(() => family?.currencySymbol || '₹', [family]);
 
@@ -49,17 +55,10 @@ export function ExpenseList() {
     if (!user) return [];
     const hiddenUserIds = new Set(members.filter(m => m.isFinancialDataHidden).map(m => m.uid));
     
-    const displayMonth = displayDate.getMonth();
-    const displayYear = displayDate.getFullYear();
-
     return expenses
-      .filter(item => {
-        const itemDate = item.date.toDate();
-        return itemDate.getMonth() === displayMonth && itemDate.getFullYear() === displayYear;
-      })
       .filter(exp => !hiddenUserIds.has(exp.addedBy) || exp.addedBy === user.uid)
       .filter(exp => !exp.isPrivate || exp.addedBy === user.uid);
-  }, [expenses, user, members, displayDate]);
+  }, [expenses, user, members]);
 
   const deleteExpense = async (expenseId: string) => {
     if (!family?.id) return;

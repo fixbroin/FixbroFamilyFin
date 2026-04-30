@@ -7,7 +7,14 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "./useAuth";
 import type { Category, Expense, Earning, ShoppingItem, UserProfile, CreditCardSpend } from "@/types";
 
-function useCollection<T extends {id: string}>(collectionName: string, orderByField: string | null = "createdAt", orderByDirection: OrderByDirection = "desc") {
+function useCollection<T extends {id: string}>(
+  collectionName: string, 
+  orderByField: string | null = "createdAt", 
+  orderByDirection: OrderByDirection = "desc",
+  dateField: string | null = null,
+  startDate: Date | null = null,
+  endDate: Date | null = null
+) {
   const { family } = useAuth();
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,14 +27,23 @@ function useCollection<T extends {id: string}>(collectionName: string, orderByFi
     };
     
     setLoading(true);
-    let q: Query;
     const collectionRef = collection(db, "families", family.id, collectionName);
+    const constraints: any[] = [];
+
+    if (dateField && (startDate || endDate)) {
+        if (startDate) {
+            constraints.push(where(dateField, ">=", startDate));
+        }
+        if (endDate) {
+            constraints.push(where(dateField, "<=", endDate));
+        }
+    }
 
     if (orderByField) {
-      q = query(collectionRef, orderBy(orderByField, orderByDirection));
-    } else {
-      q = query(collectionRef);
+      constraints.push(orderBy(orderByField, orderByDirection));
     }
+    
+    const q = query(collectionRef, ...constraints);
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
@@ -39,25 +55,25 @@ function useCollection<T extends {id: string}>(collectionName: string, orderByFi
     });
 
     return () => unsubscribe();
-  }, [family?.id, collectionName, orderByField, orderByDirection]);
+  }, [family?.id, collectionName, orderByField, orderByDirection, dateField, startDate?.getTime(), endDate?.getTime()]);
 
   return { data, loading };
 }
 
-export function useExpenses() {
-  return useCollection<Expense>("expenses");
+export function useExpenses(startDate?: Date, endDate?: Date) {
+  return useCollection<Expense>("expenses", "date", "desc", "date", startDate, endDate);
 }
 
-export function useEarnings() {
-  return useCollection<Earning>("earnings");
+export function useEarnings(startDate?: Date, endDate?: Date) {
+  return useCollection<Earning>("earnings", "date", "desc", "date", startDate, endDate);
 }
 
 export function useShoppingItems() {
-  return useCollection<ShoppingItem>("shoppingItems");
+  return useCollection<ShoppingItem>("shoppingItems", "createdAt", "desc");
 }
 
-export function useCreditCardSpends() {
-  return useCollection<CreditCardSpend>("creditCardSpends");
+export function useCreditCardSpends(startDate?: Date, endDate?: Date) {
+  return useCollection<CreditCardSpend>("creditCardSpends", "date", "desc", "date", startDate, endDate);
 }
 
 export function useFamilyMembers() {

@@ -13,6 +13,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
@@ -62,8 +63,10 @@ export function CategoryManager({ title, categoryType }: CategoryManagerProps) {
   const { data: categories, loading: categoriesLoading, collectionName } = useCategories(categoryType);
   const { toast } = useToast();
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryBudget, setNewCategoryBudget] = useState<string>("");
   const [isAdding, setIsAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,13 +75,32 @@ export function CategoryManager({ title, categoryType }: CategoryManagerProps) {
     setIsAdding(true);
     try {
       const categoriesRef = collection(db, "families", family.id, collectionName);
-      await addDoc(categoriesRef, { name: newCategoryName.trim() });
+      const data: any = { name: newCategoryName.trim() };
+      if (categoryType === 'expense' && newCategoryBudget) {
+          data.budget = parseFloat(newCategoryBudget) || 0;
+      }
+      await addDoc(categoriesRef, data);
       toast({ title: "Success", description: "Category added." });
       setNewCategoryName("");
+      setNewCategoryBudget("");
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Could not add category." });
     } finally {
       setIsAdding(false);
+    }
+  };
+
+  const handleUpdateBudget = async (categoryId: string, budget: string) => {
+    if (!family) return;
+    setUpdatingId(categoryId);
+    try {
+      const categoryRef = doc(db, "families", family.id, collectionName, categoryId);
+      await updateDoc(categoryRef, { budget: parseFloat(budget) || 0 });
+      toast({ title: "Budget updated" });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Could not update budget." });
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -103,26 +125,56 @@ export function CategoryManager({ title, categoryType }: CategoryManagerProps) {
         <CardDescription>Add or remove categories for your {categoryType.toLowerCase()}s.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleAddCategory} className="flex items-center gap-2 mb-4">
-          <Input
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
-            placeholder={`New ${categoryType} category...`}
-            disabled={isAdding}
-          />
-          <Button type="submit" disabled={isAdding || !newCategoryName.trim()} className="bg-accent text-accent-foreground hover:bg-accent/90">
-            {isAdding ? <Loader /> : <Plus className="h-4 w-4 mr-2" />}
-            Add
-          </Button>
+        <form onSubmit={handleAddCategory} className="space-y-4 mb-6">
+          <div className="flex items-center gap-2">
+            <Input
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              placeholder={`New ${categoryType} category name...`}
+              disabled={isAdding}
+            />
+            {categoryType === 'expense' && (
+                <Input
+                    type="number"
+                    value={newCategoryBudget}
+                    onChange={(e) => setNewCategoryBudget(e.target.value)}
+                    placeholder="Monthly budget (optional)"
+                    className="w-48"
+                    disabled={isAdding}
+                />
+            )}
+            <Button type="submit" disabled={isAdding || !newCategoryName.trim()} className="bg-accent text-accent-foreground hover:bg-accent/90 whitespace-nowrap">
+                {isAdding ? <Loader /> : <Plus className="h-4 w-4 mr-2" />}
+                Add Category
+            </Button>
+          </div>
         </form>
 
         {categoriesLoading ? (
           <div className="flex justify-center py-4"><Loader /></div>
         ) : (
-          <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+          <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
             {categories.map((cat) => (
-              <div key={cat.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                <span>{cat.name}</span>
+              <div key={cat.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50 gap-4">
+                <span className="flex-1 font-medium">{cat.name}</span>
+                
+                {categoryType === 'expense' && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">Budget:</span>
+                        <Input
+                            type="number"
+                            defaultValue={cat.budget || 0}
+                            onBlur={(e) => {
+                                if (parseFloat(e.target.value) !== (cat.budget || 0)) {
+                                    handleUpdateBudget(cat.id, e.target.value);
+                                }
+                            }}
+                            className="w-24 h-8 text-sm"
+                            disabled={updatingId === cat.id}
+                        />
+                    </div>
+                )}
+
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" disabled={deletingId === cat.id}>

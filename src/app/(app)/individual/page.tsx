@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories, useCreditCardSpends } from '@/hooks/useFamilyData';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader } from '@/components/ui/loader';
-import { format, subMonths, getMonth, getYear, startOfMonth, addMonths } from 'date-fns';
+import { format, subMonths, getMonth, getYear, startOfMonth, addMonths, endOfMonth } from 'date-fns';
 import { TrendingUp, TrendingDown, Wallet, User, ArrowDownCircle, ArrowUpCircle, Lock, MinusCircle, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
 import type { Expense, Earning } from '@/types';
 import { Separator } from '@/components/ui/separator';
@@ -16,12 +16,20 @@ import { Button } from '@/components/ui/button';
 
 function IndividualSummary() {
     const { user, family } = useAuth();
-    const { data: allExpenses, loading: expensesLoading } = useExpenses();
-    const { data: allEarnings, loading: earningsLoading } = useEarnings();
-    const { data: allCCSpends, loading: ccLoading } = useCreditCardSpends();
+    const [displayDate, setDisplayDate] = useState(new Date());
+
+    const { startDate, endDate, currentMonthStart } = useMemo(() => ({
+        startDate: startOfMonth(subMonths(displayDate, 5)),
+        currentMonthStart: startOfMonth(displayDate),
+        endDate: endOfMonth(displayDate)
+    }), [displayDate]);
+
+    const { data: allExpenses, loading: expensesLoading } = useExpenses(startDate, endDate);
+    const { data: allEarnings, loading: earningsLoading } = useEarnings(startDate, endDate);
+    const { data: allCCSpends, loading: ccLoading } = useCreditCardSpends(currentMonthStart, endDate);
+    
     const { data: expenseCategories, loading: expenseCatLoading } = useExpenseCategories();
     const { data: earningCategories, loading: earningCatLoading } = useEarningCategories();
-    const [displayDate, setDisplayDate] = useState(new Date());
     
     const currencySymbol = useMemo(() => family?.currencySymbol || '₹', [family]);
 
@@ -33,54 +41,30 @@ function IndividualSummary() {
         return { individualExpenses: myExpenses, individualEarnings: myEarnings, individualCCSpends: myCCSpends };
     }, [allExpenses, allEarnings, allCCSpends, user]);
 
-    const { monthlyExpenses, monthlyEarnings, monthlyCCSpends, lastMonthBalance, balance } = useMemo(() => {
+    const { monthlyExpenses, monthlyEarnings, monthlyCCSpends, balance } = useMemo(() => {
         const currentMonth = displayDate.getMonth();
         const currentYear = displayDate.getFullYear();
 
-        const prevMonthDate = subMonths(displayDate, 1);
-        const prevMonth = prevMonthDate.getMonth();
-        const prevMonthYear = prevMonthDate.getFullYear();
+        const currentMonthExpenses = individualExpenses
+            .filter(e => e.date.toDate().getMonth() === currentMonth && e.date.toDate().getFullYear() === currentYear)
+            .reduce((acc, expense) => acc + expense.amount, 0);
 
-        const currentMonthExpenses = individualExpenses.filter(expense => {
-            const expenseDate = expense.date.toDate();
-            return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
-        }).reduce((acc, expense) => acc + expense.amount, 0);
+        const currentMonthEarnings = individualEarnings
+            .filter(e => e.date.toDate().getMonth() === currentMonth && e.date.toDate().getFullYear() === currentYear)
+            .reduce((acc, earning) => acc + earning.amount, 0);
 
-        const currentMonthEarnings = individualEarnings.filter(earning => {
-            const earningDate = earning.date.toDate();
-            return earningDate.getMonth() === currentMonth && earningDate.getFullYear() === currentYear;
-        }).reduce((acc, earning) => acc + earning.amount, 0);
-
-        const currentMonthCCSpends = individualCCSpends.filter(spend => {
-            const spendDate = spend.date.toDate();
-            return spendDate.getMonth() === currentMonth && spendDate.getFullYear() === currentYear;
-        }).reduce((acc, spend) => acc + spend.amount, 0);
-        
-        const lastMonthExpenses = individualExpenses.filter(expense => {
-            const expenseDate = expense.date.toDate();
-            return expenseDate.getMonth() === prevMonth && expenseDate.getFullYear() === prevMonthYear;
-        }).reduce((acc, expense) => acc + expense.amount, 0);
-
-        const lastMonthEarnings = individualEarnings.filter(earning => {
-            const earningDate = earning.date.toDate();
-            return earningDate.getMonth() === prevMonth && earningDate.getFullYear() === prevMonthYear;
-        }).reduce((acc, earning) => acc + earning.amount, 0);
-
-        const totalExpenses = individualExpenses.reduce((acc, expense) => acc + expense.amount, 0);
-        const totalEarnings = individualEarnings.reduce((acc, earning) => acc + earning.amount, 0);
-        const overallBalance = totalEarnings - totalExpenses;
+        const currentMonthCCSpends = individualCCSpends.reduce((acc, spend) => acc + spend.amount, 0);
 
         return { 
             monthlyExpenses: currentMonthExpenses, 
             monthlyEarnings: currentMonthEarnings, 
             monthlyCCSpends: currentMonthCCSpends,
-            lastMonthBalance: lastMonthEarnings - lastMonthExpenses,
-            balance: overallBalance 
+            balance: currentMonthEarnings - currentMonthExpenses 
         };
     }, [individualExpenses, individualEarnings, individualCCSpends, displayDate]);
     
     const chartData = useMemo(() => {
-        const months = Array.from({ length: 6 }, (_, i) => subMonths(new Date(), 5 - i));
+        const months = Array.from({ length: 6 }, (_, i) => subMonths(displayDate, 5 - i));
         const data = months.map(month => ({
             name: format(month, 'MMM'),
             year: getYear(month),
@@ -89,34 +73,28 @@ function IndividualSummary() {
             Earnings: 0,
         }));
 
-        const sixMonthsAgo = startOfMonth(subMonths(new Date(), 5));
-
         individualExpenses.forEach(expense => {
             const expenseDate = expense.date.toDate();
-            if (expenseDate >= sixMonthsAgo) {
-                const expenseMonth = getMonth(expenseDate);
-                const expenseYear = getYear(expenseDate);
-                const monthData = data.find(d => d.month === expenseMonth && d.year === expenseYear);
-                if (monthData) {
-                    monthData.Expenses += expense.amount;
-                }
+            const expenseMonth = getMonth(expenseDate);
+            const expenseYear = getYear(expenseDate);
+            const monthData = data.find(d => d.month === expenseMonth && d.year === expenseYear);
+            if (monthData) {
+                monthData.Expenses += expense.amount;
             }
         });
 
         individualEarnings.forEach(earning => {
             const earningDate = earning.date.toDate();
-            if (earningDate >= sixMonthsAgo) {
-                const earningMonth = getMonth(earningDate);
-                const earningYear = getYear(earningDate);
-                const monthData = data.find(d => d.month === earningMonth && d.year === earningYear);
-                if (monthData) {
-                    monthData.Earnings += earning.amount;
-                }
+            const earningMonth = getMonth(earningDate);
+            const earningYear = getYear(earningDate);
+            const monthData = data.find(d => d.month === earningMonth && d.year === earningYear);
+            if (monthData) {
+                monthData.Earnings += earning.amount;
             }
         });
 
         return data;
-    }, [individualExpenses, individualEarnings]);
+    }, [individualExpenses, individualEarnings, displayDate]);
 
     const expenseCategoriesMap = useMemo(() => {
         return expenseCategories.reduce((acc, cat) => {
@@ -201,7 +179,7 @@ function IndividualSummary() {
                     </Button>
                 </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Monthly Earnings</CardTitle>
@@ -231,28 +209,13 @@ function IndividualSummary() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            {lastMonthBalance >= 0 ? "Last Month's Savings" : "Last Month's Deficit"}
-                        </CardTitle>
-                        {lastMonthBalance >= 0 ? (
-                            <TrendingUp className="h-4 w-4 text-emerald-500" />
-                        ) : (
-                            <TrendingDown className="h-4 w-4 text-rose-500" />
-                        )}
-                    </CardHeader>
-                    <CardContent>
-                        <div className={cn("text-2xl font-bold", lastMonthBalance >= 0 ? "text-emerald-500" : "text-rose-500")}>
-                            {lastMonthBalance < 0 ? "-" : ""}{currencySymbol}{Math.abs(lastMonthBalance).toFixed(2)}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Your Balance</CardTitle>
+                        <CardTitle className="text-sm font-medium">Monthly Savings</CardTitle>
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{currencySymbol}{balance.toFixed(2)}</div>
+                        <div className={cn("text-2xl font-bold", balance >= 0 ? "text-emerald-500" : "text-rose-500")}>
+                            {currencySymbol}{balance.toFixed(2)}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -348,5 +311,3 @@ export default function IndividualPage() {
         </div>
     );
 }
-
-    

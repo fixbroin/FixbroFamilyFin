@@ -7,7 +7,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useEarnings, useEarningCategories, useFamilyMembers } from "@/hooks/useFamilyData";
 import type { Earning } from "@/types";
-import { format, addMonths, subMonths } from "date-fns";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,12 +29,18 @@ import { useToast } from "@/hooks/use-toast";
 
 export function EarningList() {
   const { user, family } = useAuth();
-  const { data: earnings, loading: earningsLoading } = useEarnings();
+  const [displayDate, setDisplayDate] = useState(new Date());
+
+  const { startDate, endDate } = useMemo(() => ({
+    startDate: startOfMonth(displayDate),
+    endDate: endOfMonth(displayDate)
+  }), [displayDate]);
+
+  const { data: earnings, loading: earningsLoading } = useEarnings(startDate, endDate);
   const { data: categories, loading: categoriesLoading } = useEarningCategories();
   const { data: members, loading: membersLoading } = useFamilyMembers();
   const { toast } = useToast();
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [displayDate, setDisplayDate] = useState(new Date());
 
   const currencySymbol = useMemo(() => family?.currencySymbol || '₹', [family]);
 
@@ -49,17 +55,10 @@ export function EarningList() {
     if (!user) return [];
     const hiddenUserIds = new Set(members.filter(m => m.isFinancialDataHidden).map(m => m.uid));
     
-    const displayMonth = displayDate.getMonth();
-    const displayYear = displayDate.getFullYear();
-
     return earnings
-      .filter(item => {
-        const itemDate = item.date.toDate();
-        return itemDate.getMonth() === displayMonth && itemDate.getFullYear() === displayYear;
-      })
       .filter(earning => !hiddenUserIds.has(earning.addedBy) || earning.addedBy === user.uid)
       .filter(earning => !earning.isPrivate || earning.addedBy === user.uid);
-  }, [earnings, user, members, displayDate]);
+  }, [earnings, user, members]);
 
   const deleteEarning = async (earningId: string) => {
     if (!family?.id) return;
