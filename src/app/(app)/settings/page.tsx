@@ -31,7 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { currencies } from "@/lib/currencies";
 import Link from "next/link";
-import { ShoppingBag, ChevronRight } from "lucide-react";
+import { ShoppingBag, ChevronRight, ChevronLeft } from "lucide-react";
 
 
 const nameFormSchema = z.object({
@@ -953,9 +953,19 @@ function ReportSettings() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="family">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="family">Family Reports</TabsTrigger>
-                    <TabsTrigger value="individual">My Reports</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-xl">
+                    <TabsTrigger 
+                        value="family" 
+                        className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg transition-all"
+                    >
+                        Family Reports
+                    </TabsTrigger>
+                    <TabsTrigger 
+                        value="individual" 
+                        className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg transition-all"
+                    >
+                        My Reports
+                    </TabsTrigger>
                 </TabsList>
                 <TabsContent value="family" className="mt-6">
                     {renderReportSection('family')}
@@ -971,6 +981,27 @@ function ReportSettings() {
 
 export default function SettingsPage() {
     const { loading } = useAuth();
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [showLeftArrow, setShowLeftArrow] = useState(false);
+    const [showRightArrow, setShowRightArrow] = useState(false);
+
+    const checkScroll = () => {
+        const container = scrollContainerRef.current;
+        if (container) {
+            setShowLeftArrow(container.scrollLeft > 5);
+            setShowRightArrow(container.scrollLeft < container.scrollWidth - container.clientWidth - 5);
+        }
+    };
+
+    useEffect(() => {
+        checkScroll();
+        const timer = setTimeout(checkScroll, 100);
+        window.addEventListener('resize', checkScroll);
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('resize', checkScroll);
+        };
+    }, []);
 
     if (loading) {
         return <div className="flex justify-center items-center h-full"><Loader /></div>;
@@ -980,18 +1011,74 @@ export default function SettingsPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 className="text-3xl font-bold font-headline mb-6">Settings</h1>
             <Tabs defaultValue="profile" className="w-full">
-                <div className="w-full overflow-x-auto">
-                    <TabsList className="mx-auto">
-                        <TabsTrigger value="profile">Profile</TabsTrigger>
-                        <TabsTrigger value="family">Family</TabsTrigger>
-                        <TabsTrigger value="currency">Currency</TabsTrigger>
-                        <TabsTrigger value="privacy">Privacy</TabsTrigger>
-                        <TabsTrigger value="notifications">Notifications</TabsTrigger>
-                        <TabsTrigger value="categories">Categories</TabsTrigger>
-                        <TabsTrigger value="reports">Reports</TabsTrigger>
-                        <TabsTrigger value="shortcuts">Shortcuts</TabsTrigger>
+                <div className="relative group">
+                    {showLeftArrow && (
+                        <div className="absolute left-0 top-0 bottom-4 z-10 w-12 bg-gradient-to-r from-background via-background/80 to-transparent flex items-center pointer-events-none">
+                            <ChevronLeft className="h-5 w-5 text-muted-foreground animate-pulse ml-1" />
+                        </div>
+                    )}
+                    <div 
+                        ref={scrollContainerRef}
+                        onScroll={checkScroll}
+                        className="w-full overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
+                    >
+                        <TabsList className="flex bg-transparent h-auto p-0 gap-2 justify-start min-w-max">
+                        <TabsTrigger 
+                            value="profile" 
+                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
+                        >
+                            Profile
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="family" 
+                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
+                        >
+                            Family
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="currency" 
+                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
+                        >
+                            Currency
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="privacy" 
+                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
+                        >
+                            Privacy
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="notifications" 
+                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
+                        >
+                            Notifications
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="categories" 
+                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
+                        >
+                            Categories
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="reports" 
+                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
+                        >
+                            Reports
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="shortcuts" 
+                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
+                        >
+                            Shortcuts
+                        </TabsTrigger>
                     </TabsList>
                 </div>
+                {showRightArrow && (
+                    <div className="absolute right-0 top-0 bottom-4 z-10 w-12 bg-gradient-to-l from-background via-background/80 to-transparent flex items-center justify-end pointer-events-none">
+                        <ChevronRight className="h-5 w-5 text-muted-foreground animate-pulse mr-1" />
+                    </div>
+                )}
+            </div>
 
                 <div className="max-w-2xl mx-auto mt-6">
                      <TabsContent value="profile">

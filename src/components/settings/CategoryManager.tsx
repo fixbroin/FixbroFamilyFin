@@ -126,12 +126,13 @@ export function CategoryManager({ title, categoryType }: CategoryManagerProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleAddCategory} className="space-y-4 mb-6">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <Input
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               placeholder={`New ${categoryType} category name...`}
               disabled={isAdding}
+              className="flex-1"
             />
             {categoryType === 'expense' && (
                 <Input
@@ -139,11 +140,11 @@ export function CategoryManager({ title, categoryType }: CategoryManagerProps) {
                     value={newCategoryBudget}
                     onChange={(e) => setNewCategoryBudget(e.target.value)}
                     placeholder="Monthly budget (optional)"
-                    className="w-48"
+                    className="w-full sm:w-48"
                     disabled={isAdding}
                 />
             )}
-            <Button type="submit" disabled={isAdding || !newCategoryName.trim()} className="bg-accent text-accent-foreground hover:bg-accent/90 whitespace-nowrap">
+            <Button type="submit" disabled={isAdding || !newCategoryName.trim()} className="bg-accent text-accent-foreground hover:bg-accent/90 whitespace-nowrap w-full sm:w-auto">
                 {isAdding ? <Loader /> : <Plus className="h-4 w-4 mr-2" />}
                 Add Category
             </Button>
@@ -155,45 +156,47 @@ export function CategoryManager({ title, categoryType }: CategoryManagerProps) {
         ) : (
           <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
             {categories.map((cat) => (
-              <div key={cat.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50 gap-4">
+              <div key={cat.id} className="flex flex-col sm:flex-row sm:items-center p-2 rounded-md bg-muted/50 gap-2 sm:gap-4">
                 <span className="flex-1 font-medium">{cat.name}</span>
                 
-                {categoryType === 'expense' && (
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">Budget:</span>
-                        <Input
-                            type="number"
-                            defaultValue={cat.budget || 0}
-                            onBlur={(e) => {
-                                if (parseFloat(e.target.value) !== (cat.budget || 0)) {
-                                    handleUpdateBudget(cat.id, e.target.value);
-                                }
-                            }}
-                            className="w-24 h-8 text-sm"
-                            disabled={updatingId === cat.id}
-                        />
-                    </div>
-                )}
+                <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                  {categoryType === 'expense' && (
+                      <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">Budget:</span>
+                          <Input
+                              type="number"
+                              defaultValue={cat.budget || 0}
+                              onBlur={(e) => {
+                                  if (parseFloat(e.target.value) !== (cat.budget || 0)) {
+                                      handleUpdateBudget(cat.id, e.target.value);
+                                  }
+                              }}
+                              className="w-24 h-8 text-sm"
+                              disabled={updatingId === cat.id}
+                          />
+                      </div>
+                  )}
 
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" disabled={deletingId === cat.id}>
-                      {deletingId === cat.id ? <Loader className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the "{cat.name}" category.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDeleteCategory(cat.id)}>Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" disabled={deletingId === cat.id}>
+                        {deletingId === cat.id ? <Loader className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the "{cat.name}" category.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteCategory(cat.id)}>Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             ))}
              {categories.length === 0 && (
