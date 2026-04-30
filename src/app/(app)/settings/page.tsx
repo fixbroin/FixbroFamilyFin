@@ -30,6 +30,8 @@ import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories, u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { currencies } from "@/lib/currencies";
+import Link from "next/link";
+import { ShoppingBag, ChevronRight } from "lucide-react";
 
 
 const nameFormSchema = z.object({
@@ -549,6 +551,31 @@ function NotificationSettings() {
     );
 }
 
+function ShortcutsSettings() {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Shortcuts</CardTitle>
+                <CardDescription>Quick access to other features.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <Link href="/shopping" className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted transition-colors">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-accent/10">
+                            <ShoppingBag className="h-5 w-5 text-accent" />
+                        </div>
+                        <div>
+                            <p className="font-medium">Shopping List</p>
+                            <p className="text-sm text-muted-foreground">View and manage your family shopping list.</p>
+                        </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </Link>
+            </CardContent>
+        </Card>
+    );
+}
+
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 10 }, (_, i) => (currentYear - i).toString());
 const months = Array.from({ length: 12 }, (_, i) => ({
@@ -907,6 +934,7 @@ export default function SettingsPage() {
                         <TabsTrigger value="notifications">Notifications</TabsTrigger>
                         <TabsTrigger value="categories">Categories</TabsTrigger>
                         <TabsTrigger value="reports">Reports</TabsTrigger>
+                        <TabsTrigger value="shortcuts">Shortcuts</TabsTrigger>
                     </TabsList>
                 </div>
 
@@ -935,6 +963,9 @@ export default function SettingsPage() {
                     </TabsContent>
                     <TabsContent value="reports">
                         <ReportSettings />
+                    </TabsContent>
+                    <TabsContent value="shortcuts">
+                        <ShortcutsSettings />
                     </TabsContent>
                 </div>
             </Tabs>

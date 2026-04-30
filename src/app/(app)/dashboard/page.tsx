@@ -3,12 +3,12 @@
 
 import { useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories, useFamilyMembers } from '@/hooks/useFamilyData';
+import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories, useFamilyMembers, useCreditCardSpends } from '@/hooks/useFamilyData';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader } from '@/components/ui/loader';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, subMonths, getMonth, getYear, startOfMonth, addMonths } from 'date-fns';
-import { TrendingUp, TrendingDown, Wallet, ArrowDownCircle, ArrowUpCircle, Lock, MinusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, ArrowDownCircle, ArrowUpCircle, Lock, MinusCircle, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
 import type { Expense, Earning } from '@/types';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ function FinancialSummary() {
     const { user, family } = useAuth();
     const { data: expenses, loading: expensesLoading } = useExpenses();
     const { data: earnings, loading: earningsLoading } = useEarnings();
+    const { data: creditCardSpends, loading: ccLoading } = useCreditCardSpends();
     const { data: expenseCategories, loading: expenseCatLoading } = useExpenseCategories();
     const { data: earningCategories, loading: earningCatLoading } = useEarningCategories();
     const { data: members, loading: membersLoading } = useFamilyMembers();
@@ -38,7 +39,7 @@ function FinancialSummary() {
         return { visibleExpenses: myVisibleExpenses, visibleEarnings: myVisibleEarnings };
     }, [expenses, earnings, user, hiddenUserIds]);
 
-    const { monthlyExpenses, monthlyEarnings, lastMonthBalance, balance } = useMemo(() => {
+    const { monthlyExpenses, monthlyEarnings, monthlyCCSpends, lastMonthBalance, balance } = useMemo(() => {
         const currentMonth = displayDate.getMonth();
         const currentYear = displayDate.getFullYear();
         
@@ -55,6 +56,11 @@ function FinancialSummary() {
             const earningDate = earning.date.toDate();
             return earningDate.getMonth() === currentMonth && earningDate.getFullYear() === currentYear;
         }).reduce((acc, earning) => acc + earning.amount, 0);
+
+        const currentMonthCCSpends = creditCardSpends.filter(spend => {
+            const spendDate = spend.date.toDate();
+            return spendDate.getMonth() === currentMonth && spendDate.getFullYear() === currentYear;
+        }).reduce((acc, spend) => acc + spend.amount, 0);
 
         const lastMonthExpenses = visibleExpenses.filter(expense => {
             const expenseDate = expense.date.toDate();
@@ -73,10 +79,11 @@ function FinancialSummary() {
         return { 
             monthlyExpenses: currentMonthExpenses, 
             monthlyEarnings: currentMonthEarnings, 
+            monthlyCCSpends: currentMonthCCSpends,
             lastMonthBalance: lastMonthEarnings - lastMonthExpenses,
             balance: overallBalance 
         };
-    }, [visibleExpenses, visibleEarnings, displayDate]);
+    }, [visibleExpenses, visibleEarnings, creditCardSpends, displayDate]);
 
     const chartData = useMemo(() => {
         const months = Array.from({ length: 6 }, (_, i) => subMonths(new Date(), 5 - i));
@@ -157,7 +164,7 @@ function FinancialSummary() {
            .filter(item => !item.isPrivate || item.addedBy === user.uid);
    }, [visibleEarnings, user, displayDate]);
 
-    const loading = expensesLoading || earningsLoading || expenseCatLoading || earningCatLoading || membersLoading;
+    const loading = expensesLoading || earningsLoading || expenseCatLoading || earningCatLoading || membersLoading || ccLoading;
     if (loading) {
         return <div className="flex justify-center items-center h-64"><Loader className="h-16 w-16" /></div>;
     }
@@ -208,7 +215,7 @@ function FinancialSummary() {
                     </Button>
                 </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Monthly Earnings</CardTitle>
@@ -225,6 +232,15 @@ function FinancialSummary() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{currencySymbol}{monthlyExpenses.toFixed(2)}</div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">CC Spends</CardTitle>
+                        <CreditCard className="h-4 w-4 text-orange-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{currencySymbol}{monthlyCCSpends.toFixed(2)}</div>
                     </CardContent>
                 </Card>
                 <Card>

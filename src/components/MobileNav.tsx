@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, CreditCard, Landmark, ShoppingBag, LayoutDashboard, User } from "lucide-react";
+import { Settings, CreditCard, Landmark, ShoppingBag, LayoutDashboard, User, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -15,9 +15,9 @@ export function MobileNav() {
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/individual", label: "You", icon: User },
-    { href: "/shopping", label: "Shopping", icon: ShoppingBag },
-    { href: "/expenses", label: "Expenses", icon: CreditCard },
+    { href: "/individual", label: "My", icon: User },
+    { href: "/expenses", label: "Expenses", icon: Receipt },
+    { href: "/credit-card", label: "CreditCard", icon: CreditCard },
     { href: "/earnings", label: "Earnings", icon: Landmark },
     { href: "/settings", label: "Settings", icon: Settings },
   ];

@@ -30,6 +30,7 @@ export function Header() {
     { href: "/dashboard", label: "Dashboard" },
     { href: "/individual", label: "Individual" },
     { href: "/shopping", label: "Shopping List" },
+    { href: "/credit-card", label: "Credit Card" },
     { href: "/expenses", label: "Expenses" },
     { href: "/earnings", label: "Earnings" },
     { href: "/settings", label: "Settings" },

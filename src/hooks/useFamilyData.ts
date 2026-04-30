@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { collection, query, onSnapshot, orderBy, Query, OrderByDirection, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "./useAuth";
-import type { Category, Expense, Earning, ShoppingItem, UserProfile } from "@/types";
+import type { Category, Expense, Earning, ShoppingItem, UserProfile, CreditCardSpend } from "@/types";
 
 function useCollection<T extends {id: string}>(collectionName: string, orderByField: string | null = "createdAt", orderByDirection: OrderByDirection = "desc") {
   const { family } = useAuth();
@@ -54,6 +54,10 @@ export function useEarnings() {
 
 export function useShoppingItems() {
   return useCollection<ShoppingItem>("shoppingItems");
+}
+
+export function useCreditCardSpends() {
+  return useCollection<CreditCardSpend>("creditCardSpends");
 }
 
 export function useFamilyMembers() {

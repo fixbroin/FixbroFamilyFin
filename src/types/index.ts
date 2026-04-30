@@ -63,3 +63,12 @@ export interface ShoppingItem {
   remindedBy?: string | null;
   purchasedBy?: string | null;
 }
+
+export interface CreditCardSpend {
+  id: string;
+  name: string;
+  amount: number;
+  date: Timestamp;
+  addedBy: string; // user uid
+  createdAt: Timestamp;
+}
