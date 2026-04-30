@@ -72,5 +72,6 @@ export interface CreditCardSpend {
   amount: number;
   date: Timestamp;
   addedBy: string; // user uid
+  isPrivate: boolean;
   createdAt: Timestamp;
 }

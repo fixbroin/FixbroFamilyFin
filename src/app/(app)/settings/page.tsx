@@ -25,14 +25,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format, getMonth, getYear, startOfMonth, endOfMonth } from "date-fns";
-import type { Expense, Earning } from "@/types";
+
 import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories, useFamilyMembers, useCreditCardSpends } from "@/hooks/useFamilyData";
 import { Switch } from "@/components/ui/switch";
 import { currencies } from "@/lib/currencies";
 import Link from "next/link";
 import { ShoppingBag, ChevronRight, ChevronLeft } from "lucide-react";
 import { SelectionDialog } from "@/components/ui/SelectionDialog";
-
+import type { Expense, Earning, CreditCardSpend } from "@/types";
 
 const nameFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -697,7 +697,7 @@ function ReportSettings() {
         const endDate = endOfMonth(new Date(year, month));
 
         const getFilteredData = (dataType: 'expenses' | 'earnings' | 'credit-card') => {
-            let sourceData;
+            let sourceData: any[];
             if (dataType === 'expenses') sourceData = expenses;
             else if (dataType === 'earnings') sourceData = earnings;
             else sourceData = allCCSpends;
@@ -727,7 +727,7 @@ function ReportSettings() {
                 const userItems = itemsByUser[userId];
                 let userSubtotal = 0;
                 
-                userItems.forEach(item => {
+                userItems.forEach((item: any) => {
                     let amountCell = item.amount.toFixed(2);
                     if (type === 'combined') {
                         amountCell = itemType === 'expense' ? `- ${amountCell}` : `+ ${amountCell}`;
@@ -756,7 +756,7 @@ function ReportSettings() {
         const amountHeader = `Amount (${pdfCurrencySymbol})`;
 
         if (type === 'expenses') {
-            const filteredExpenses = getFilteredData('expenses');
+            const filteredExpenses = getFilteredData('expenses') as Expense[];
             const reportTitle = `${prefix} Expense Report for ${format(startDate, "MMMM yyyy")}`;
             const headers = [["Date", "Name", "Category", amountHeader]];
             let body: any[];
@@ -773,7 +773,7 @@ function ReportSettings() {
         }
 
         if (type === 'earnings') {
-            const filteredEarnings = getFilteredData('earnings');
+            const filteredEarnings = getFilteredData('earnings') as Earning[];
             const reportTitle = `${prefix} Earning Report for ${format(startDate, "MMMM yyyy")}`;
             const headers = [["Date", "Name", "Category", amountHeader]];
             let body: any[];
@@ -790,7 +790,7 @@ function ReportSettings() {
         }
 
         if (type === 'credit-card') {
-            const filteredCC = getFilteredData('credit-card');
+            const filteredCC = getFilteredData('credit-card') as CreditCardSpend[];
             const reportTitle = `${prefix} Credit Card Report for ${format(startDate, "MMMM yyyy")}`;
             const headers = [["Date", "Name", "Category", amountHeader]];
             let body: any[];
@@ -799,7 +799,7 @@ function ReportSettings() {
                 body = groupedBody;
                 body.push([{ content: 'Grand Total', colSpan: 3, styles: { halign: 'right', fontStyle: 'bold', fillColor: [229, 231, 235] } }, { content: grandTotal.toFixed(2), styles: { fontStyle: 'bold', fillColor: [229, 231, 235] } }]);
             } else {
-                 body = filteredCC.map((cc: any) => [
+                 body = filteredCC.map((cc: CreditCardSpend) => [
                     format(cc.date.toDate(), "dd-MM-yyyy"), cc.name, "Credit Card", cc.amount.toFixed(2),
                 ]);
             }
@@ -819,8 +819,8 @@ function ReportSettings() {
                 return currentY;
             };
 
-            const filteredExpenses = getFilteredData('expenses');
-            const filteredEarnings = getFilteredData('earnings');
+            const filteredExpenses = getFilteredData('expenses') as Expense[];
+            const filteredEarnings = getFilteredData('earnings') as Earning[];
 
             const reportTitle = `${prefix} Combined Report for ${format(startDate, "MMMM yyyy")}`;
             doc.text(reportTitle, 14, 15);
