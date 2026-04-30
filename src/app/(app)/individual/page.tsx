@@ -168,7 +168,7 @@ function IndividualSummary() {
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                     <span>{categoriesMap[item.categoryId] || 'Uncategorized'}</span>
-                    {item.isPrivate && <Lock className="h-3 w-3" title={`Private ${type}`} />}
+                    {item.isPrivate && <Lock className="h-3 w-3" />}
                     </div>
                     <span>{item.date ? format(item.date.toDate(), "MMM d, yyyy") : 'No date'}</span>
                 </div>
@@ -214,12 +214,18 @@ function IndividualSummary() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Last Month's Balance</CardTitle>
-                        <MinusCircle className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">
+                            {lastMonthBalance >= 0 ? "Last Month's Savings" : "Last Month's Deficit"}
+                        </CardTitle>
+                        {lastMonthBalance >= 0 ? (
+                            <TrendingUp className="h-4 w-4 text-emerald-500" />
+                        ) : (
+                            <TrendingDown className="h-4 w-4 text-rose-500" />
+                        )}
                     </CardHeader>
                     <CardContent>
                         <div className={cn("text-2xl font-bold", lastMonthBalance >= 0 ? "text-emerald-500" : "text-rose-500")}>
-                            {currencySymbol}{lastMonthBalance.toFixed(2)}
+                            {lastMonthBalance < 0 ? "-" : ""}{currencySymbol}{Math.abs(lastMonthBalance).toFixed(2)}
                         </div>
                     </CardContent>
                 </Card>

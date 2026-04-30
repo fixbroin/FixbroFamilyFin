@@ -128,7 +128,8 @@ export function ExpenseList() {
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
                             <span>{categoriesMap[item.categoryId] || 'Uncategorized'}</span>
-                            {item.isPrivate && <Lock className="h-3 w-3" title="Private expense" />}
+                            {item.isPrivate && <Lock className="h-3 w-3" />}        
+
                         </div>
                        <span>{item.date ? format(item.date.toDate(), "MMM d, yyyy") : 'No date'}</span>
                     </div>
