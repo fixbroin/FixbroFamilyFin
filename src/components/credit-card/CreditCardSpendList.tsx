@@ -178,14 +178,19 @@ export function CreditCardSpendList() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="text-muted-foreground hover:text-accent h-8 w-8"
+                          className="h-8 w-8 bg-secondary/50 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
                           onClick={() => setEditingSpend(item)}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" disabled={deleting === item.id}>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 bg-red-50 text-red-500 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                              disabled={deleting === item.id}
+                            >
                                {deleting === item.id ? <Loader className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
                             </Button>
                           </AlertDialogTrigger>
