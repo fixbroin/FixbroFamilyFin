@@ -62,27 +62,32 @@ export function SelectionDialog({
         <ScrollArea className="max-h-[60vh] p-4">
           <div className="grid gap-1">
             {options.map((option) => (
-              <Button
-                key={option.value}
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start font-normal h-11 px-3 rounded-lg",
-                  selectedValue === option.value && "bg-accent/10 text-accent font-medium hover:bg-accent/20"
-                )}
-                onClick={() => {
-                  onSelect(option.value);
-                  setOpen(false);
-                }}
-              >
-                <div className="flex items-center justify-between w-full text-left">
-                  <div className="flex items-center gap-3">
-                    {option.icon}
-                    <span>{option.label}</span>
-                  </div>
-                  {selectedValue === option.value && <Check className="h-4 w-4 flex-shrink-0" />}
-                </div>
-              </Button>
-            ))}
+  <Button
+    key={option.value}
+    variant="ghost"
+    className={cn(
+  "w-full justify-start h-11 px-4 rounded-xl border transition-all duration-150 text-left",
+  
+  selectedValue === option.value
+    ? "bg-blue-600 text-white border-blue-600"
+    : "bg-gray-50 text-gray-800 border-gray-200 hover:bg-blue-600 hover:text-white hover:border-blue-600"
+)}
+    onClick={() => {
+      onSelect(option.value);
+      setOpen(false);
+    }}
+  >
+    <div className="flex items-center justify-between w-full">
+      <div className="flex items-center gap-3">
+        {option.icon}
+        <span>{option.label}</span>
+      </div>
+      {selectedValue === option.value && (
+        <Check className="h-4 w-4 flex-shrink-0" />
+      )}
+    </div>
+  </Button>
+))}
           </div>
         </ScrollArea>
       </DialogContent>

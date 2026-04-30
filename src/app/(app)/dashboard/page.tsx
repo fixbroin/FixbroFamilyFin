@@ -204,22 +204,32 @@ function FinancialSummary() {
         return (
              <div className="flex items-center gap-4 py-2">
                 <div className="flex-shrink-0">
-                    {type === 'earning' ? <ArrowUpCircle className="h-6 w-6 text-emerald-500" /> : <ArrowDownCircle className="h-6 w-6 text-rose-500" />}
+                    {type === 'earning' ? (
+                        <div className="p-2 rounded-full bg-emerald-500/10">
+                            <ArrowUpCircle className="h-6 w-6 text-emerald-500" />
+                        </div>
+                    ) : (
+                        <div className="p-2 rounded-full bg-rose-500/10">
+                            <ArrowDownCircle className="h-6 w-6 text-rose-500" />
+                        </div>
+                    )}
                 </div>
                 <div className="flex-1 space-y-1">
-                <div className="flex items-center justify-between">
-                    <p className="font-semibold">{item.name}</p>
-                    <p className={cn("font-semibold", type === 'earning' ? 'text-emerald-500' : 'text-rose-500')}>
-                        {type === 'earning' ? '+' : '-'}{currencySymbol}{item.amount.toFixed(2)}
-                    </p>
-                </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                    <span>{categoriesMap[item.categoryId] || 'Uncategorized'}</span>
-                    {item.isPrivate && <Lock className="h-3 w-3" />}
+                    <div className="flex items-center justify-between">
+                        <p className="font-semibold text-foreground">{item.name}</p>
+                        <p className={cn("font-bold text-lg", type === 'earning' ? 'text-emerald-500' : 'text-rose-500')}>
+                            {type === 'earning' ? '+' : '-'}{currencySymbol}{item.amount.toFixed(2)}
+                        </p>
                     </div>
-                    <span>{item.date ? format(item.date.toDate(), "MMM d, yyyy") : 'No date'}</span>
-                </div>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            <span className="bg-muted px-2 py-0.5 rounded-md text-xs font-medium">
+                                {categoriesMap[item.categoryId] || 'Uncategorized'}
+                            </span>
+                            {item.isPrivate && <Lock className="h-3 w-3" />}
+                        </div>
+                        <span className="text-xs">{item.date ? format(item.date.toDate(), "MMM d, yyyy") : 'No date'}</span>
+                    </div>
                 </div>
             </div>
         )
@@ -227,51 +237,76 @@ function FinancialSummary() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-semibold">Summary for {format(displayDate, 'MMMM yyyy')}</h2>
-                    <p className="text-muted-foreground">Your family's financial summary for the selected month.</p>
+                    <h2 className="text-2xl font-bold font-headline">Summary for {format(displayDate, 'MMMM yyyy')}</h2>
+                    <p className="text-muted-foreground">Your family's financial dashboard.</p>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="icon" onClick={goToPreviousMonth}>
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={goToNextMonth} disabled={isNextMonthDisabled}>
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
-                </div>
+                <div className="flex gap-2 bg-gray-100 p-1 rounded-full border border-gray-200">
+    
+    <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={goToPreviousMonth} 
+        className="h-8 w-8 rounded-full 
+                   bg-blue-100 text-blue-600 
+                   hover:bg-blue-600 hover:text-white 
+                   transition-all duration-200"
+    >
+        <ChevronLeft className="h-4 w-4" />
+    </Button>
+
+    <div className="flex items-center px-3 text-xs font-semibold text-gray-800">
+        {format(displayDate, 'MMM yyyy')}
+    </div>
+
+    <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={goToNextMonth} 
+        disabled={isNextMonthDisabled} 
+        className="h-8 w-8 rounded-full 
+                   bg-blue-100 text-blue-600 
+                   hover:bg-blue-600 hover:text-white 
+                   transition-all duration-200 
+                   disabled:opacity-30"
+    >
+        <ChevronRight className="h-4 w-4" />
+    </Button>
+
+</div>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
+                <Card className="border-emerald-500/20 bg-emerald-500/[0.02]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Monthly Earnings</CardTitle>
+                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Monthly Earnings</CardTitle>
                         <TrendingUp className="h-4 w-4 text-emerald-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{currencySymbol}{monthlyEarnings.toFixed(2)}</div>
+                        <div className="text-2xl font-bold text-emerald-500">{currencySymbol}{monthlyEarnings.toFixed(2)}</div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-rose-500/20 bg-rose-500/[0.02]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Monthly Expenses</CardTitle>
+                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Monthly Expenses</CardTitle>
                         <TrendingDown className="h-4 w-4 text-rose-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{currencySymbol}{monthlyExpenses.toFixed(2)}</div>
+                        <div className="text-2xl font-bold text-rose-500">{currencySymbol}{monthlyExpenses.toFixed(2)}</div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-orange-500/20 bg-orange-500/[0.02]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">CC Spends</CardTitle>
+                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">CC Spends</CardTitle>
                         <CreditCard className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{currencySymbol}{monthlyCCSpends.toFixed(2)}</div>
+                        <div className="text-2xl font-bold text-orange-500">{currencySymbol}{monthlyCCSpends.toFixed(2)}</div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className={cn("border-muted shadow-sm", balance >= 0 ? "border-emerald-500/20 bg-emerald-500/[0.01]" : "border-rose-500/20 bg-rose-500/[0.01]")}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Your Balance</CardTitle>
+                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Net Savings</CardTitle>
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -284,23 +319,41 @@ function FinancialSummary() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Last 6 Months Overview</CardTitle>
-                    <CardDescription>A summary of your recent earnings and expenses.</CardDescription>
+                    <CardTitle className="text-lg font-bold">Last 6 Months Overview</CardTitle>
+                    <CardDescription>A summary of your family's recent earnings and expenses.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${currencySymbol}${value}`} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                            <XAxis 
+                                dataKey="name" 
+                                stroke="hsl(var(--muted-foreground))" 
+                                fontSize={12} 
+                                tickLine={false} 
+                                axisLine={false} 
+                            />
+                            <YAxis 
+                                stroke="hsl(var(--muted-foreground))" 
+                                fontSize={12} 
+                                tickLine={false} 
+                                axisLine={false} 
+                                tickFormatter={(value) => `${currencySymbol}${value}`} 
+                            />
                             <Tooltip
-                                contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-                                labelStyle={{ color: 'hsl(var(--foreground))' }}
+                                contentStyle={{ 
+                                    backgroundColor: 'hsl(var(--background))', 
+                                    border: '1px solid hsl(var(--border))',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                }}
+                                labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold', marginBottom: '4px' }}
+                                cursor={{ fill: 'hsl(var(--muted)/0.1)' }}
                                 formatter={(value: number, name: string) => [`${currencySymbol}${value.toFixed(2)}`, name]}
                             />
-                            <Legend iconType="circle" />
-                            <Bar dataKey="Earnings" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="Expenses" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                            <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                            <Bar dataKey="Earnings" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
+                            <Bar dataKey="Expenses" fill="#f43f5e" radius={[4, 4, 0, 0]} barSize={20} />
                         </BarChart>
                     </ResponsiveContainer>
                 </CardContent>

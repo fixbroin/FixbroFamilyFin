@@ -187,17 +187,39 @@ function IndividualSummary() {
                     <h2 className="text-2xl font-bold font-headline">Summary for {format(displayDate, 'MMMM yyyy')}</h2>
                     <p className="text-muted-foreground">Your personal financial dashboard.</p>
                 </div>
-                <div className="flex gap-2 bg-muted/30 p-1 rounded-lg">
-                    <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-8 w-8">
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <div className="flex items-center px-2 text-xs font-medium">
-                        {format(displayDate, 'MMM yyyy')}
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={goToNextMonth} disabled={isNextMonthDisabled} className="h-8 w-8">
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
-                </div>
+                <div className="flex gap-2 bg-gray-100 p-1 rounded-full border border-gray-200">
+    
+    <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={goToPreviousMonth} 
+        className="h-8 w-8 rounded-full 
+                   bg-blue-100 text-blue-600 
+                   hover:bg-blue-600 hover:text-white 
+                   transition-all duration-200"
+    >
+        <ChevronLeft className="h-4 w-4" />
+    </Button>
+
+    <div className="flex items-center px-3 text-xs font-semibold text-gray-800">
+        {format(displayDate, 'MMM yyyy')}
+    </div>
+
+    <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={goToNextMonth} 
+        disabled={isNextMonthDisabled} 
+        className="h-8 w-8 rounded-full 
+                   bg-blue-100 text-blue-600 
+                   hover:bg-blue-600 hover:text-white 
+                   transition-all duration-200 
+                   disabled:opacity-30"
+    >
+        <ChevronRight className="h-4 w-4" />
+    </Button>
+
+</div>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card className="border-emerald-500/20 bg-emerald-500/[0.02]">

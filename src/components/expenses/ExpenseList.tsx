@@ -102,14 +102,39 @@ export function ExpenseList() {
                 <CardTitle>Expenses for {format(displayDate, 'MMMM yyyy')}</CardTitle>
                 <CardDescription>Here are the expenses for the selected month.</CardDescription>
             </div>
-            <div className="flex gap-2">
-                <Button variant="outline" size="icon" onClick={goToPreviousMonth}>
-                    <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" onClick={goToNextMonth} disabled={isNextMonthButtonDisabled()}>
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
-            </div>
+            <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-full border border-gray-200">
+    
+    <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={goToPreviousMonth} 
+        className="h-8 w-8 rounded-full 
+                   bg-blue-100 text-blue-600 
+                   hover:bg-blue-600 hover:text-white 
+                   transition-all duration-200 ease-in-out"
+    >
+        <ChevronLeft className="h-4 w-4" />
+    </Button>
+
+    <div className="flex items-center px-3 text-xs font-semibold text-gray-800">
+        {format(displayDate, 'MMM yyyy')}
+    </div>
+
+    <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={goToNextMonth} 
+        disabled={isNextMonthButtonDisabled()} 
+        className="h-8 w-8 rounded-full 
+                   bg-blue-100 text-blue-600 
+                   hover:bg-blue-600 hover:text-white 
+                   transition-all duration-200 ease-in-out 
+                   disabled:opacity-30 disabled:cursor-not-allowed"
+    >
+        <ChevronRight className="h-4 w-4" />
+    </Button>
+
+</div>
         </div>
       </CardHeader>
       <CardContent>

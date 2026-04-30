@@ -10,9 +10,10 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, ChevronLeft, ChevronRight, Lock } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight, Lock, CreditCard } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Loader } from "@/components/ui/loader";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -105,14 +106,39 @@ export function CreditCardSpendList() {
                   <CardTitle>Recent Spends</CardTitle>
                   <CardDescription>Credit card transactions for {format(displayDate, 'MMMM yyyy')}.</CardDescription>
               </div>
-              <div className="flex gap-2">
-                  <Button variant="outline" size="icon" onClick={goToPreviousMonth}>
-                      <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon" onClick={goToNextMonth} disabled={isNextMonthButtonDisabled()}>
-                      <ChevronRight className="h-4 w-4" />
-                  </Button>
-              </div>
+              <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-full border border-gray-200">
+    
+    <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={goToPreviousMonth} 
+        className="h-8 w-8 rounded-full 
+                   bg-blue-100 text-blue-600 
+                   hover:bg-blue-600 hover:text-white 
+                   transition-all duration-200 ease-in-out"
+    >
+        <ChevronLeft className="h-4 w-4" />
+    </Button>
+
+    <div className="flex items-center px-3 text-xs font-semibold text-gray-800">
+        {format(displayDate, 'MMM yyyy')}
+    </div>
+
+    <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={goToNextMonth} 
+        disabled={isNextMonthButtonDisabled()} 
+        className="h-8 w-8 rounded-full 
+                   bg-blue-100 text-blue-600 
+                   hover:bg-blue-600 hover:text-white 
+                   transition-all duration-200 ease-in-out 
+                   disabled:opacity-30 disabled:cursor-not-allowed"
+    >
+        <ChevronRight className="h-4 w-4" />
+    </Button>
+
+</div>
           </div>
         </CardHeader>
         <CardContent>
@@ -123,16 +149,26 @@ export function CreditCardSpendList() {
               {filteredSpends.map((item: CreditCardSpend, index: number) => (
                 <div key={item.id}>
                   <div className="flex items-center gap-4 p-2 rounded-md">
+                    <div className="flex-shrink-0">
+                      <div className="p-2 rounded-full bg-orange-500/10">
+                        <CreditCard className="h-6 w-6 text-orange-500" />
+                      </div>
+                    </div>
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <p className="font-semibold">{item.name}</p>
                             {item.isPrivate && <Lock className="h-3 w-3 text-muted-foreground" />}
                         </div>
-                        <p className="font-semibold text-lg">{currencySymbol}{item.amount.toFixed(2)}</p>
+                        <p className="font-bold text-lg text-orange-500">{currencySymbol}{item.amount.toFixed(2)}</p>
                       </div>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
-                         <span>{item.date ? format(item.date.toDate(), "MMM d, yyyy") : 'No date'}</span>
+                         <div className="flex items-center gap-2">
+                            <span className="bg-muted px-2 py-0.5 rounded-md text-xs font-medium">
+                                Credit Card
+                            </span>
+                        </div>
+                         <span className="text-xs">{item.date ? format(item.date.toDate(), "MMM d, yyyy") : 'No date'}</span>
                       </div>
                     </div>
                     {item.addedBy === user?.uid && (
