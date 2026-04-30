@@ -1022,58 +1022,57 @@ export default function SettingsPage() {
                         onScroll={checkScroll}
                         className="w-full overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
                     >
-                        <TabsList className="flex bg-transparent h-auto p-0 gap-2 justify-start min-w-max">
-                        <TabsTrigger 
-                            value="profile" 
-                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
-                        >
-                            Profile
-                        </TabsTrigger>
-                        <TabsTrigger 
-                            value="family" 
-                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
-                        >
-                            Family
-                        </TabsTrigger>
-                        <TabsTrigger 
-                            value="currency" 
-                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
-                        >
-                            Currency
-                        </TabsTrigger>
-                        <TabsTrigger 
-                            value="privacy" 
-                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
-                        >
-                            Privacy
-                        </TabsTrigger>
-                        <TabsTrigger 
-                            value="notifications" 
-                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
-                        >
-                            Notifications
-                        </TabsTrigger>
-                        <TabsTrigger 
-                            value="categories" 
-                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
-                        >
-                            Categories
-                        </TabsTrigger>
-                        <TabsTrigger 
-                            value="reports" 
-                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
-                        >
-                            Reports
-                        </TabsTrigger>
-                        <TabsTrigger 
-                            value="shortcuts" 
-                            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full border shadow-sm transition-all"
-                        >
-                            Shortcuts
-                        </TabsTrigger>
-                    </TabsList>
-                </div>
-                {showRightArrow && (
+                        <TabsList className="flex bg-muted/40 h-auto p-1.5 gap-2 justify-start min-w-max rounded-full border shadow-inner">
+                            <TabsTrigger 
+                                value="profile" 
+                                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md bg-background/60 hover:bg-background px-4 py-2 rounded-full border shadow-sm transition-all"
+                            >
+                                Profile
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="family" 
+                                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md bg-background/60 hover:bg-background px-4 py-2 rounded-full border shadow-sm transition-all"
+                            >
+                                Family
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="currency" 
+                                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md bg-background/60 hover:bg-background px-4 py-2 rounded-full border shadow-sm transition-all"
+                            >
+                                Currency
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="privacy" 
+                                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md bg-background/60 hover:bg-background px-4 py-2 rounded-full border shadow-sm transition-all"
+                            >
+                                Privacy
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="notifications" 
+                                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md bg-background/60 hover:bg-background px-4 py-2 rounded-full border shadow-sm transition-all"
+                            >
+                                Notifications
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="categories" 
+                                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md bg-background/60 hover:bg-background px-4 py-2 rounded-full border shadow-sm transition-all"
+                            >
+                                Categories
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="reports" 
+                                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md bg-background/60 hover:bg-background px-4 py-2 rounded-full border shadow-sm transition-all"
+                            >
+                                Reports
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="shortcuts" 
+                                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md bg-background/60 hover:bg-background px-4 py-2 rounded-full border shadow-sm transition-all"
+                            >
+                                Shortcuts
+                            </TabsTrigger>
+                        </TabsList>
+                    </div>                {showRightArrow && (
                     <div className="absolute right-0 top-0 bottom-4 z-10 w-12 bg-gradient-to-l from-background via-background/80 to-transparent flex items-center justify-end pointer-events-none">
                         <ChevronRight className="h-5 w-5 text-muted-foreground animate-pulse mr-1" />
                     </div>
