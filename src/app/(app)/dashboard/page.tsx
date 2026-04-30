@@ -79,7 +79,9 @@ function FinancialSummary() {
             .filter(e => e.date.toDate().getMonth() === currentMonth && e.date.toDate().getFullYear() === currentYear)
             .reduce((acc, earning) => acc + earning.amount, 0);
 
-        const currentMonthCCSpends = visibleCCSpends.reduce((acc, spend) => acc + spend.amount, 0);
+        const currentMonthCCSpends = visibleCCSpends
+            .filter(s => s.date.toDate().getMonth() === currentMonth && s.date.toDate().getFullYear() === currentYear)
+            .reduce((acc, spend) => acc + spend.amount, 0);
 
         return { 
             monthlyExpenses: currentMonthExpenses, 
@@ -137,10 +139,15 @@ function FinancialSummary() {
     }, [earningCategories]);
 
     const budgetData = useMemo(() => {
+        const currentMonth = displayDate.getMonth();
+        const currentYear = displayDate.getFullYear();
         const categorySpending: Record<string, number> = {};
-        visibleExpenses.forEach(exp => {
-            categorySpending[exp.categoryId] = (categorySpending[exp.categoryId] || 0) + exp.amount;
-        });
+
+        visibleExpenses
+            .filter(e => e.date.toDate().getMonth() === currentMonth && e.date.toDate().getFullYear() === currentYear)
+            .forEach(exp => {
+                categorySpending[exp.categoryId] = (categorySpending[exp.categoryId] || 0) + exp.amount;
+            });
 
         return expenseCategories
             .filter(cat => cat.budget && cat.budget > 0)
@@ -155,7 +162,7 @@ function FinancialSummary() {
                     isOverBudget: spent > budget
                 };
             });
-    }, [visibleExpenses, expenseCategories]);
+    }, [visibleExpenses, expenseCategories, displayDate]);
 
     const recentExpenses = useMemo(() => {
         if (!user) return [];
@@ -264,7 +271,7 @@ function FinancialSummary() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Monthly Savings</CardTitle>
+                        <CardTitle className="text-sm font-medium">Your Balance</CardTitle>
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
