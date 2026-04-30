@@ -26,7 +26,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format, getMonth, getYear, startOfMonth, endOfMonth } from "date-fns";
 import type { Expense, Earning } from "@/types";
-import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories, useFamilyMembers } from "@/hooks/useFamilyData";
+import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories, useFamilyMembers, useCreditCardSpends } from "@/hooks/useFamilyData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { currencies } from "@/lib/currencies";
@@ -614,6 +614,7 @@ function ReportSettings() {
     const { user, family } = useAuth();
     const { data: expenses, loading: expensesLoading } = useExpenses();
     const { data: earnings, loading: earningsLoading } = useEarnings();
+    const { data: allCCSpends, loading: ccLoading } = useCreditCardSpends();
     const { data: expenseCategories, loading: expenseCatLoading } = useExpenseCategories();
     const { data: earningCategories, loading: earningCatLoading } = useEarningCategories();
     const { data: members, loading: membersLoading } = useFamilyMembers();
@@ -625,6 +626,8 @@ function ReportSettings() {
     const [expenseYear, setExpenseYear] = useState<string>(getYear(new Date()).toString());
     const [earningMonth, setEarningMonth] = useState<string>(getMonth(new Date()).toString());
     const [earningYear, setEarningYear] = useState<string>(getYear(new Date()).toString());
+    const [ccMonth, setCcMonth] = useState<string>(getMonth(new Date()).toString());
+    const [ccYear, setCcYear] = useState<string>(getYear(new Date()).toString());
     const [combinedMonth, setCombinedMonth] = useState<string>(getMonth(new Date()).toString());
     const [combinedYear, setCombinedYear] = useState<string>(getYear(new Date()).toString());
 
@@ -633,6 +636,8 @@ function ReportSettings() {
     const [indExpenseYear, setIndExpenseYear] = useState<string>(getYear(new Date()).toString());
     const [indEarningMonth, setIndEarningMonth] = useState<string>(getMonth(new Date()).toString());
     const [indEarningYear, setIndEarningYear] = useState<string>(getYear(new Date()).toString());
+    const [indCcMonth, setIndCcMonth] = useState<string>(getMonth(new Date()).toString());
+    const [indCcYear, setIndCcYear] = useState<string>(getYear(new Date()).toString());
     const [indCombinedMonth, setIndCombinedMonth] = useState<string>(getMonth(new Date()).toString());
     const [indCombinedYear, setIndCombinedYear] = useState<string>(getYear(new Date()).toString());
   
@@ -659,7 +664,7 @@ function ReportSettings() {
         }, {} as Record<string, string>);
     }, [members]);
 
-    const handleExport = (type: 'expenses' | 'earnings' | 'combined', scope: 'family' | 'individual') => {
+    const handleExport = (type: 'expenses' | 'earnings' | 'credit-card' | 'combined', scope: 'family' | 'individual') => {
         if (scope === 'individual' && !user) return;
         
         const stateKey = `${scope}-${type}`;
@@ -671,10 +676,12 @@ function ReportSettings() {
         if (scope === 'family') {
             if (type === 'expenses') { [monthStr, yearStr] = [expenseMonth, expenseYear]; }
             else if (type === 'earnings') { [monthStr, yearStr] = [earningMonth, earningYear]; }
+            else if (type === 'credit-card') { [monthStr, yearStr] = [ccMonth, ccYear]; }
             else { [monthStr, yearStr] = [combinedMonth, combinedYear]; }
         } else {
             if (type === 'expenses') { [monthStr, yearStr] = [indExpenseMonth, indExpenseYear]; }
             else if (type === 'earnings') { [monthStr, yearStr] = [indEarningMonth, indEarningYear]; }
+            else if (type === 'credit-card') { [monthStr, yearStr] = [indCcMonth, indCcYear]; }
             else { [monthStr, yearStr] = [indCombinedMonth, indCombinedYear]; }
         }
 
@@ -683,8 +690,12 @@ function ReportSettings() {
         const startDate = startOfMonth(new Date(year, month));
         const endDate = endOfMonth(new Date(year, month));
 
-        const getFilteredData = (dataType: 'expenses' | 'earnings') => {
-            const sourceData = dataType === 'expenses' ? expenses : earnings;
+        const getFilteredData = (dataType: 'expenses' | 'earnings' | 'credit-card') => {
+            let sourceData;
+            if (dataType === 'expenses') sourceData = expenses;
+            else if (dataType === 'earnings') sourceData = earnings;
+            else sourceData = allCCSpends;
+
             return sourceData.filter(item => {
                 const itemDate = item.date.toDate();
                 const dateMatch = itemDate >= startDate && itemDate <= endDate;
@@ -693,12 +704,12 @@ function ReportSettings() {
             });
         };
         
-        const buildGroupedBody = (items: (Expense | Earning)[], itemType: 'expense' | 'earning') => {
+        const buildGroupedBody = (items: any[], itemType: 'expense' | 'earning' | 'credit-card') => {
             const categoriesMap = itemType === 'expense' ? expenseCategoriesMap : earningCategoriesMap;
             const itemsByUser = items.reduce((acc, item) => {
                 (acc[item.addedBy] = acc[item.addedBy] || []).push(item);
                 return acc;
-            }, {} as Record<string, (Expense | Earning)[]>);
+            }, {} as Record<string, any[]>);
 
             const body: any[] = [];
             let grandTotal = 0;
@@ -718,7 +729,7 @@ function ReportSettings() {
                     body.push([
                         format(item.date.toDate(), "dd-MM-yyyy"),
                         item.name,
-                        categoriesMap[item.categoryId] || 'Uncategorized',
+                        itemType === 'credit-card' ? 'Credit Card' : (categoriesMap[item.categoryId] || 'Uncategorized'),
                         amountCell
                     ]);
                     userSubtotal += item.amount;
@@ -770,6 +781,23 @@ function ReportSettings() {
                 ]);
             }
             generatePdf(reportTitle, headers, body, `${filenamePrefix}-Earning-Report-${format(startDate, "MM-yyyy")}.pdf`);
+        }
+
+        if (type === 'credit-card') {
+            const filteredCC = getFilteredData('credit-card');
+            const reportTitle = `${prefix} Credit Card Report for ${format(startDate, "MMMM yyyy")}`;
+            const headers = [["Date", "Name", "Category", amountHeader]];
+            let body: any[];
+            if (scope === 'family') {
+                const { body: groupedBody, grandTotal } = buildGroupedBody(filteredCC, 'credit-card');
+                body = groupedBody;
+                body.push([{ content: 'Grand Total', colSpan: 3, styles: { halign: 'right', fontStyle: 'bold', fillColor: [229, 231, 235] } }, { content: grandTotal.toFixed(2), styles: { fontStyle: 'bold', fillColor: [229, 231, 235] } }]);
+            } else {
+                 body = filteredCC.map((cc: any) => [
+                    format(cc.date.toDate(), "dd-MM-yyyy"), cc.name, "Credit Card", cc.amount.toFixed(2),
+                ]);
+            }
+            generatePdf(reportTitle, headers, body, `${filenamePrefix}-CreditCard-Report-${format(startDate, "MM-yyyy")}.pdf`);
         }
 
         if (type === 'combined') {
@@ -849,7 +877,7 @@ function ReportSettings() {
         setIsGenerating(null);
     };
 
-    const loading = expensesLoading || earningsLoading || expenseCatLoading || earningCatLoading || membersLoading;
+    const loading = expensesLoading || earningsLoading || expenseCatLoading || earningCatLoading || membersLoading || ccLoading;
     if(loading) {
         return <div className="flex h-full items-center justify-center"><Loader/></div>
     }
@@ -860,6 +888,8 @@ function ReportSettings() {
             expenseYear: scope === 'family' ? setExpenseYear : setIndExpenseYear,
             earningMonth: scope === 'family' ? setEarningMonth : setIndEarningMonth,
             earningYear: scope === 'family' ? setEarningYear : setIndEarningYear,
+            ccMonth: scope === 'family' ? setCcMonth : setIndCcMonth,
+            ccYear: scope === 'family' ? setCcYear : setIndCcYear,
             combinedMonth: scope === 'family' ? setCombinedMonth : setIndCombinedMonth,
             combinedYear: scope === 'family' ? setCombinedYear : setIndCombinedYear,
         };
@@ -868,6 +898,8 @@ function ReportSettings() {
             expenseYear: scope === 'family' ? expenseYear : indExpenseYear,
             earningMonth: scope === 'family' ? earningMonth : indEarningMonth,
             earningYear: scope === 'family' ? earningYear : indEarningYear,
+            ccMonth: scope === 'family' ? ccMonth : indCcMonth,
+            ccYear: scope === 'family' ? ccYear : indCcYear,
             combinedMonth: scope === 'family' ? combinedMonth : indCombinedMonth,
             combinedYear: scope === 'family' ? combinedYear : indCombinedYear,
         }
@@ -890,6 +922,15 @@ function ReportSettings() {
                     <Select value={dateValues.earningYear} onValueChange={dateSetters.earningYear}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select>
                   </div>
                   <Button onClick={() => handleExport('earnings', scope)} disabled={isGenerating === `${scope}-earnings`} className="w-full sm:w-auto">{isGenerating === `${scope}-earnings` ? <Loader/> : "Export Earnings PDF"}</Button>
+                </div>
+                <Separator />
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Monthly Credit Card Report</h3>
+                  <div className="flex gap-2 mb-4">
+                    <Select value={dateValues.ccMonth} onValueChange={dateSetters.ccMonth}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent></Select>
+                    <Select value={dateValues.ccYear} onValueChange={dateSetters.ccYear}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select>
+                  </div>
+                  <Button onClick={() => handleExport('credit-card', scope)} disabled={isGenerating === `${scope}-credit-card`} className="w-full sm:w-auto">{isGenerating === `${scope}-credit-card` ? <Loader/> : "Export Credit Card PDF"}</Button>
                 </div>
                 <Separator />
                 <div>
@@ -986,7 +1027,3 @@ export default function SettingsPage() {
         </div>
     );
 }
-
-    
-
-    
