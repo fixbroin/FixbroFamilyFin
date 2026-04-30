@@ -9,8 +9,6 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useEarningCategories } from "@/hooks/useFamilyData";
 import { format } from "date-fns";
-import { useVoiceInput } from "@/hooks/useVoiceInput";
-import { parseTransaction } from "@/ai/flows/parse-transaction-flow";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -19,12 +17,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SelectionDialog } from "@/components/ui/SelectionDialog";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Plus, Mic } from "lucide-react";
+import { CalendarIcon, Plus } from "lucide-react";
 import { Loader } from "../ui/loader";
 import { cn } from "@/lib/utils";
-import { ListeningIndicator } from "../ui/ListeningIndicator";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Earning name cannot be empty." }),
@@ -34,35 +30,12 @@ const formSchema = z.object({
   isPrivate: z.boolean().default(false),
 });
 
-const languages = [
-  { value: 'en-IN', label: 'English' },
-  { value: 'hi-IN', label: 'हिन्दी' },
-  { value: 'kn-IN', label: 'ಕನ್ನಡ' },
-  { value: 'ta-IN', label: 'தமிழ்' },
-  { value: 'te-IN', label: 'తెలుగు' },
-];
-
 export function AddEarningForm() {
   const { user, family, userProfile } = useAuth();
   const { data: categories, loading: categoriesLoading } = useEarningCategories();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [profileDefaultsSet, setProfileDefaultsSet] = useState(false);
-  const [isParsing, setIsParsing] = useState(false);
-  
-  const [language, setLanguage] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('preferredVoiceLanguage') || 'en-IN';
-    }
-    return 'en-IN';
-  });
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('preferredVoiceLanguage', language);
-    }
-  }, [language]);
-
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -74,55 +47,6 @@ export function AddEarningForm() {
       isPrivate: false,
     },
   });
-
-  const handleTranscript = async (transcript: string) => {
-    if (!transcript) return;
-    setIsParsing(true);
-    try {
-      const categoryNames = categories.map(c => c.name);
-      const result = await parseTransaction({ text: transcript, categories: categoryNames });
-
-      let allFieldsSet = true;
-      if (result.name) {
-        form.setValue("name", result.name);
-      } else {
-        allFieldsSet = false;
-      }
-      if (result.amount) {
-        form.setValue("amount", result.amount);
-      } else {
-        allFieldsSet = false;
-      }
-      if (result.categoryName) {
-        const matchedCategory = categories.find(c => c.name.toLowerCase() === result.categoryName?.toLowerCase());
-        if (matchedCategory) {
-          form.setValue("categoryId", matchedCategory.id);
-        } else {
-          allFieldsSet = false;
-        }
-      } else {
-        allFieldsSet = false;
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 0));
-      const isValid = await form.trigger();
-
-      if (isValid && allFieldsSet) {
-        await onSubmit(form.getValues());
-      } else {
-        toast({ title: "Please complete the form", description: "Some details couldn't be filled automatically. Please check and submit." });
-      }
-
-    } catch (error) {
-      console.error("Failed to parse transaction", error);
-      toast({ variant: "destructive", title: "AI Error", description: "Failed to process voice input." });
-    } finally {
-      setIsParsing(false);
-    }
-  };
-
-
-  const { isListening, startListening, stopListening, isSupported } = useVoiceInput({ onTranscript: handleTranscript, language });
 
   useEffect(() => {
     if (userProfile && !profileDefaultsSet) {
@@ -163,26 +87,12 @@ export function AddEarningForm() {
 
   return (
     <Card>
-      <ListeningIndicator isOpen={isListening} onClose={stopListening} />
       <CardHeader>
         <CardTitle>Add New Earning</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {isSupported && (
-              <FormItem>
-                <FormLabel>Voice Input Language</FormLabel>
-                <SelectionDialog
-                    title="Select Language"
-                    options={languages}
-                    selectedValue={language}
-                    onSelect={setLanguage}
-                    placeholder="Select language"
-                />
-              </FormItem>
-            )}
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -190,16 +100,9 @@ export function AddEarningForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Earning Name</FormLabel>
-                     <div className="flex gap-2">
-                        <FormControl>
-                          <Input placeholder="e.g., Salary, Side Gig" {...field} />
-                        </FormControl>
-                        {isSupported && (
-                            <Button type="button" variant="outline" size="icon" onClick={startListening} disabled={isListening || isParsing}>
-                                {isListening || isParsing ? <Loader className="h-4 w-4"/> : <Mic className="h-4 w-4" />}
-                            </Button>
-                        )}
-                    </div>
+                    <FormControl>
+                      <Input placeholder="e.g., Salary, Side Gig" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -278,8 +181,8 @@ export function AddEarningForm() {
             </div>
             
             <div className="flex items-center justify-end pt-2">
-                <Button type="submit" disabled={loading || isParsing} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                {loading || isParsing ? <Loader /> : <Plus className="h-4 w-4" />}
+                <Button type="submit" disabled={loading} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                {loading ? <Loader /> : <Plus className="h-4 w-4" />}
                 Add Earning
                 </Button>
             </div>
