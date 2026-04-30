@@ -11,9 +11,10 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Lock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, Lock, ChevronLeft, ChevronRight, ArrowUpCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Loader } from "@/components/ui/loader";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -119,18 +120,25 @@ export function EarningList() {
             {filteredEarnings.map((item: Earning, index: number) => (
               <div key={item.id}>
                 <div className="flex items-center gap-4 p-2 rounded-md">
+                  <div className="flex-shrink-0">
+                    <div className="p-2 rounded-full bg-emerald-500/10">
+                      <ArrowUpCircle className="h-6 w-6 text-emerald-500" />
+                    </div>
+                  </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold">{item.name}</p>
-                      <p className="font-semibold text-lg">{currencySymbol}{item.amount.toFixed(2)}</p>
+                      <p className="font-bold text-lg text-emerald-500">{currencySymbol}{item.amount.toFixed(2)}</p>
                     </div>
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
-                            <span>{categoriesMap[item.categoryId] || 'Uncategorized'}</span>
+                            <span className="bg-muted px-2 py-0.5 rounded-md text-xs font-medium">
+                                {categoriesMap[item.categoryId] || 'Uncategorized'}
+                            </span>
                             {item.isPrivate && <Lock className="h-3 w-3" />}        
 
                         </div>
-                       <span>{item.date ? format(item.date.toDate(), "MMM d, yyyy") : 'No date'}</span>
+                       <span className="text-xs">{item.date ? format(item.date.toDate(), "MMM d, yyyy") : 'No date'}</span>
                     </div>
                   </div>
                   {item.addedBy === user?.uid && (

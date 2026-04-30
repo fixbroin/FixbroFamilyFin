@@ -137,27 +137,44 @@ function IndividualSummary() {
     const goToNextMonth = () => setDisplayDate(prev => addMonths(prev, 1));
     const isNextMonthDisabled = getMonth(displayDate) === getMonth(new Date()) && getYear(displayDate) === getYear(new Date());
 
-    const renderTransactionItem = (item: Expense | Earning, type: 'expense' | 'earning') => {
+    const renderTransactionItem = (item: Expense | Earning | any, type: 'expense' | 'earning' | 'cc') => {
         const categoriesMap = type === 'expense' ? expenseCategoriesMap : earningCategoriesMap;
         return (
              <div className="flex items-center gap-4 py-2">
                 <div className="flex-shrink-0">
-                    {type === 'earning' ? <ArrowUpCircle className="h-6 w-6 text-emerald-500" /> : <ArrowDownCircle className="h-6 w-6 text-rose-500" />}
+                    {type === 'earning' ? (
+                        <div className="p-2 rounded-full bg-emerald-500/10">
+                            <ArrowUpCircle className="h-6 w-6 text-emerald-500" />
+                        </div>
+                    ) : type === 'expense' ? (
+                        <div className="p-2 rounded-full bg-rose-500/10">
+                            <ArrowDownCircle className="h-6 w-6 text-rose-500" />
+                        </div>
+                    ) : (
+                        <div className="p-2 rounded-full bg-orange-500/10">
+                            <CreditCard className="h-6 w-6 text-orange-500" />
+                        </div>
+                    )}
                 </div>
                 <div className="flex-1 space-y-1">
-                <div className="flex items-center justify-between">
-                    <p className="font-semibold">{item.name}</p>
-                    <p className={cn("font-semibold", type === 'earning' ? 'text-emerald-500' : 'text-rose-500')}>
-                        {type === 'earning' ? '+' : '-'}{currencySymbol}{item.amount.toFixed(2)}
-                    </p>
-                </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                    <span>{categoriesMap[item.categoryId] || 'Uncategorized'}</span>
-                    {item.isPrivate && <Lock className="h-3 w-3" />}
+                    <div className="flex items-center justify-between">
+                        <p className="font-semibold text-foreground">{item.name}</p>
+                        <p className={cn("font-bold text-lg", 
+                            type === 'earning' ? 'text-emerald-500' : 
+                            type === 'expense' ? 'text-rose-500' : 'text-orange-500'
+                        )}>
+                            {type === 'earning' ? '+' : '-'}{currencySymbol}{item.amount.toFixed(2)}
+                        </p>
                     </div>
-                    <span>{item.date ? format(item.date.toDate(), "MMM d, yyyy") : 'No date'}</span>
-                </div>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            <span className="bg-muted px-2 py-0.5 rounded-md text-xs font-medium">
+                                {type === 'cc' ? 'Credit Card' : (categoriesMap[item.categoryId] || 'Uncategorized')}
+                            </span>
+                            {item.isPrivate && <Lock className="h-3 w-3" />}
+                        </div>
+                        <span className="text-xs">{item.date ? format(item.date.toDate(), "MMM d, yyyy") : 'No date'}</span>
+                    </div>
                 </div>
             </div>
         )
@@ -165,51 +182,54 @@ function IndividualSummary() {
 
     return (
         <div className="space-y-6">
-             <div className="flex justify-between items-center">
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-semibold">Summary for {format(displayDate, 'MMMM yyyy')}</h2>
-                    <p className="text-muted-foreground">Your personal financial summary for the selected month.</p>
+                    <h2 className="text-2xl font-bold font-headline">Summary for {format(displayDate, 'MMMM yyyy')}</h2>
+                    <p className="text-muted-foreground">Your personal financial dashboard.</p>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="icon" onClick={goToPreviousMonth}>
+                <div className="flex gap-2 bg-muted/30 p-1 rounded-lg">
+                    <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-8 w-8">
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon" onClick={goToNextMonth} disabled={isNextMonthDisabled}>
+                    <div className="flex items-center px-2 text-xs font-medium">
+                        {format(displayDate, 'MMM yyyy')}
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={goToNextMonth} disabled={isNextMonthDisabled} className="h-8 w-8">
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
+                <Card className="border-emerald-500/20 bg-emerald-500/[0.02]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Monthly Earnings</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-emerald-500" />
+                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Monthly Earnings</CardTitle>
+                        <ArrowUpCircle className="h-4 w-4 text-emerald-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{currencySymbol}{monthlyEarnings.toFixed(2)}</div>
+                        <div className="text-2xl font-bold text-emerald-500">{currencySymbol}{monthlyEarnings.toFixed(2)}</div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-rose-500/20 bg-rose-500/[0.02]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Monthly Expenses</CardTitle>
-                        <TrendingDown className="h-4 w-4 text-rose-500" />
+                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Monthly Expenses</CardTitle>
+                        <ArrowDownCircle className="h-4 w-4 text-rose-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{currencySymbol}{monthlyExpenses.toFixed(2)}</div>
+                        <div className="text-2xl font-bold text-rose-500">{currencySymbol}{monthlyExpenses.toFixed(2)}</div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-orange-500/20 bg-orange-500/[0.02]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">CC Spends</CardTitle>
+                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">CC Spends</CardTitle>
                         <CreditCard className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{currencySymbol}{monthlyCCSpends.toFixed(2)}</div>
+                        <div className="text-2xl font-bold text-orange-500">{currencySymbol}{monthlyCCSpends.toFixed(2)}</div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className={cn("border-muted shadow-sm", balance >= 0 ? "border-emerald-500/20 bg-emerald-500/[0.01]" : "border-rose-500/20 bg-rose-500/[0.01]")}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Your Balance</CardTitle>
+                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Net Savings</CardTitle>
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -222,43 +242,66 @@ function IndividualSummary() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Your 6-Month Contribution</CardTitle>
-                    <CardDescription>A summary of your personal earnings and expenses.</CardDescription>
+                    <CardTitle className="text-lg font-bold">Contribution Trends</CardTitle>
+                    <CardDescription>Visualizing your financial flow over the last 6 months.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${currencySymbol}${value}`} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                            <XAxis 
+                                dataKey="name" 
+                                stroke="hsl(var(--muted-foreground))" 
+                                fontSize={12} 
+                                tickLine={false} 
+                                axisLine={false} 
+                            />
+                            <YAxis 
+                                stroke="hsl(var(--muted-foreground))" 
+                                fontSize={12} 
+                                tickLine={false} 
+                                axisLine={false} 
+                                tickFormatter={(value) => `${currencySymbol}${value}`} 
+                            />
                             <Tooltip
-                                contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-                                labelStyle={{ color: 'hsl(var(--foreground))' }}
+                                contentStyle={{ 
+                                    backgroundColor: 'hsl(var(--background))', 
+                                    border: '1px solid hsl(var(--border))',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                }}
+                                labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold', marginBottom: '4px' }}
+                                cursor={{ fill: 'hsl(var(--muted)/0.1)' }}
                                 formatter={(value: number, name: string) => [`${currencySymbol}${value.toFixed(2)}`, name]}
                             />
-                            <Legend iconType="circle" />
-                            <Bar dataKey="Earnings" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="Expenses" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                            <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                            <Bar dataKey="Earnings" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
+                            <Bar dataKey="Expenses" fill="#f43f5e" radius={[4, 4, 0, 0]} barSize={20} />
                         </BarChart>
                     </ResponsiveContainer>
                 </CardContent>
             </Card>
 
-            <div className="grid gap-6 md:grid-cols-2">
-                <Card>
+            <div className="grid gap-6 lg:grid-cols-3">
+                <Card className="lg:col-span-1">
                     <CardHeader>
-                        <CardTitle>Your Recent Expenses</CardTitle>
-                        <CardDescription>Your personal expenses from this month.</CardDescription>
+                        <CardTitle className="text-lg font-bold flex items-center gap-2">
+                            <ArrowDownCircle className="h-5 w-5 text-rose-500" />
+                            Recent Expenses
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         {recentExpenses.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-8">You have no recent expenses.</p>
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <MinusCircle className="h-8 w-8 text-muted/20 mb-2" />
+                            <p className="text-sm text-muted-foreground font-medium">No expenses this month</p>
+                        </div>
                         ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-4">
                             {recentExpenses.map((item, index) => (
                             <div key={item.id}>
                                 {renderTransactionItem(item, 'expense')}
-                                {index < recentExpenses.length - 1 && <Separator />}
+                                {index < recentExpenses.length - 1 && <Separator className="mt-2" />}
                             </div>
                             ))}
                         </div>
@@ -266,20 +309,51 @@ function IndividualSummary() {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="lg:col-span-1">
                     <CardHeader>
-                        <CardTitle>Your Recent Earnings</CardTitle>
-                        <CardDescription>Your personal earnings from this month.</CardDescription>
+                        <CardTitle className="text-lg font-bold flex items-center gap-2">
+                            <ArrowUpCircle className="h-5 w-5 text-emerald-500" />
+                            Recent Earnings
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         {recentEarnings.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-8">You have no recent earnings.</p>
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <ArrowUpCircle className="h-8 w-8 text-muted/20 mb-2" />
+                            <p className="text-sm text-muted-foreground font-medium">No earnings this month</p>
+                        </div>
                         ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-4">
                             {recentEarnings.map((item, index) => (
                             <div key={item.id}>
                                 {renderTransactionItem(item, 'earning')}
-                                {index < recentEarnings.length - 1 && <Separator />}
+                                {index < recentEarnings.length - 1 && <Separator className="mt-2" />}
+                            </div>
+                            ))}
+                        </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card className="lg:col-span-1">
+                    <CardHeader>
+                        <CardTitle className="text-lg font-bold flex items-center gap-2">
+                            <CreditCard className="h-5 w-5 text-orange-500" />
+                            Credit Card Spends
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {individualCCSpends.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <CreditCard className="h-8 w-8 text-muted/20 mb-2" />
+                            <p className="text-sm text-muted-foreground font-medium">No card spends recorded</p>
+                        </div>
+                        ) : (
+                        <div className="space-y-4">
+                            {individualCCSpends.map((item, index) => (
+                            <div key={item.id}>
+                                {renderTransactionItem(item, 'cc')}
+                                {index < individualCCSpends.length - 1 && <Separator className="mt-2" />}
                             </div>
                             ))}
                         </div>
