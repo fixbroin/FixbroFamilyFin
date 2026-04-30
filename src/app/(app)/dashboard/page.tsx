@@ -245,10 +245,10 @@ function FinancialSummary() {
                 <div className="flex gap-2 bg-gray-100 p-1 rounded-full border border-gray-200">
     
     <Button 
-        variant="soft" 
+        variant="ghost" 
         size="icon" 
         onClick={goToPreviousMonth} 
-        className="h-8 w-8 rounded-full"
+        className="h-8 w-8 rounded-full bg-white shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-200"
     >
         <ChevronLeft className="h-4 w-4" />
     </Button>
@@ -258,11 +258,11 @@ function FinancialSummary() {
     </div>
 
     <Button 
-        variant="soft" 
+        variant="ghost" 
         size="icon" 
         onClick={goToNextMonth} 
         disabled={isNextMonthDisabled} 
-        className="h-8 w-8 rounded-full"
+        className="h-8 w-8 rounded-full bg-white shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:bg-white/50"
     >
         <ChevronRight className="h-4 w-4" />
     </Button>

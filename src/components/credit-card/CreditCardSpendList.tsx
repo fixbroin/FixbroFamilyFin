@@ -114,10 +114,7 @@ export function CreditCardSpendList() {
         variant="ghost" 
         size="icon" 
         onClick={goToPreviousMonth} 
-        className="h-8 w-8 rounded-full 
-                   bg-blue-100 text-blue-600 
-                   hover:bg-blue-600 hover:text-white 
-                   transition-all duration-200 ease-in-out"
+        className="h-8 w-8 rounded-full bg-white shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-200"
     >
         <ChevronLeft className="h-4 w-4" />
     </Button>
@@ -131,11 +128,7 @@ export function CreditCardSpendList() {
         size="icon" 
         onClick={goToNextMonth} 
         disabled={isNextMonthButtonDisabled()} 
-        className="h-8 w-8 rounded-full 
-                   bg-blue-100 text-blue-600 
-                   hover:bg-blue-600 hover:text-white 
-                   transition-all duration-200 ease-in-out 
-                   disabled:opacity-30 disabled:cursor-not-allowed"
+        className="h-8 w-8 rounded-full bg-white shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:bg-white/50"
     >
         <ChevronRight className="h-4 w-4" />
     </Button>
