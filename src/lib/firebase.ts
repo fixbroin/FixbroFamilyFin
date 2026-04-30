@@ -25,19 +25,12 @@ const storage = getStorage(app);
 
 
 const registerServiceWorker = () => {
-    if ('serviceWorker' in navigator) {
-        const encodedFirebaseConfig = encodeURIComponent(JSON.stringify(firebaseConfig));
-        navigator.serviceWorker
-            .register(`/firebase-messaging-sw.js?firebaseConfig=${encodedFirebaseConfig}`)
-            .then(function (registration) {
-                console.log("Service worker successfully registered.");
-                return registration;
-            })
-            .catch(function (err) {
-                console.error("Unable to register service worker.", err);
-            });
-    }
+    // Note: Manual registration of firebase-messaging-sw.js is now disabled 
+    // because it is imported into the main PWA service worker (sw.js)
+    // to avoid conflicts and ensure offline support works correctly.
+    console.log("Service worker registration handled by PWA module.");
 }
+
 
 const getFcmToken = async () => {
     const supported = await isSupported();

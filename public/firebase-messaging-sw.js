@@ -5,18 +5,18 @@
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
 
-// This is a placeholder for the firebase config that will be passed via query parameter.
-let firebaseConfig = null;
+// This is a placeholder for the firebase config that will be passed via query parameter or defined globally.
+let firebaseConfig = self.firebaseConfig || null;
 
 try {
-  // The service worker is registered with the firebase config in the URL.
+  // The service worker might be registered with the firebase config in the URL.
   const urlParams = new URLSearchParams(self.location.search);
   const firebaseConfigParam = urlParams.get('firebaseConfig');
   if (firebaseConfigParam) {
     firebaseConfig = JSON.parse(decodeURIComponent(firebaseConfigParam));
   }
 } catch (e) {
-  console.error('Error parsing Firebase config in service worker:', e);
+  // Ignore error if not in URL
 }
 
 
@@ -73,8 +73,3 @@ if (firebaseConfig) {
 } else {
   console.error('Firebase config not found in service worker. Background notifications will not work.');
 }
-
-// Adding a dummy fetch event listener can help with PWA installability and push capabilities.
-self.addEventListener('fetch', (event) => {
-  // This can be left empty if you are not implementing custom caching strategies here.
-});
