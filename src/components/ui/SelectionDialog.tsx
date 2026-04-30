@@ -59,7 +59,7 @@ export function SelectionDialog({
           <DialogTitle>{title}</DialogTitle>
           {description && <p className="text-sm text-muted-foreground">{description}</p>}
         </DialogHeader>
-        <ScrollArea className="max-h-[60vh] p-4">
+        <ScrollArea className="max-h-[60vh] p-4" type="always">
           <div className="grid gap-1">
             {options.map((option) => (
   <Button
