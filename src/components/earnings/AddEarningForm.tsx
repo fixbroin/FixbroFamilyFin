@@ -151,7 +151,8 @@ export function AddEarningForm() {
       form.reset({
         ...form.getValues(),
         name: "",
-        amount: undefined
+        amount: undefined,
+        isPrivate: !!userProfile?.defaultEarningsToPrivate
       });
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Could not add earning. Please try again." });
@@ -276,22 +277,7 @@ export function AddEarningForm() {
               />
             </div>
             
-            <div className="flex items-center justify-between pt-2">
-                <FormField
-                control={form.control}
-                name="isPrivate"
-                render={({ field }) => (
-                    <FormItem className="flex flex-row items-center gap-2 space-y-0">
-                    <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">
-                        Private Earning
-                    </FormLabel>
-                    </FormItem>
-                )}
-                />
-
+            <div className="flex items-center justify-end pt-2">
                 <Button type="submit" disabled={loading || isParsing} className="bg-accent text-accent-foreground hover:bg-accent/90">
                 {loading || isParsing ? <Loader /> : <Plus className="h-4 w-4" />}
                 Add Earning
