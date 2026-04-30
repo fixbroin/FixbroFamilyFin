@@ -54,7 +54,7 @@ export function SelectionDialog({
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] p-0 gap-0 overflow-hidden">
+      <DialogContent className="w-[calc(100%-4px)] max-w-none sm:max-w-[425px] p-0 gap-0 overflow-hidden rounded-xl sm:rounded-lg">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle>{title}</DialogTitle>
           {description && <p className="text-sm text-muted-foreground">{description}</p>}
