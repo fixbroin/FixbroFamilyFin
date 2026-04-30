@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories } from '@/hooks/useFamilyData';
+import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories, useCreditCardSpends } from '@/hooks/useFamilyData';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader } from '@/components/ui/loader';
 import { format, subMonths, getMonth, getYear, startOfMonth, addMonths } from 'date-fns';
@@ -18,20 +18,22 @@ function IndividualSummary() {
     const { user, family } = useAuth();
     const { data: allExpenses, loading: expensesLoading } = useExpenses();
     const { data: allEarnings, loading: earningsLoading } = useEarnings();
+    const { data: allCCSpends, loading: ccLoading } = useCreditCardSpends();
     const { data: expenseCategories, loading: expenseCatLoading } = useExpenseCategories();
     const { data: earningCategories, loading: earningCatLoading } = useEarningCategories();
     const [displayDate, setDisplayDate] = useState(new Date());
     
     const currencySymbol = useMemo(() => family?.currencySymbol || '₹', [family]);
 
-    const { individualExpenses, individualEarnings } = useMemo(() => {
-        if (!user) return { individualExpenses: [], individualEarnings: [] };
+    const { individualExpenses, individualEarnings, individualCCSpends } = useMemo(() => {
+        if (!user) return { individualExpenses: [], individualEarnings: [], individualCCSpends: [] };
         const myExpenses = allExpenses.filter(expense => expense.addedBy === user.uid);
         const myEarnings = allEarnings.filter(earning => earning.addedBy === user.uid);
-        return { individualExpenses: myExpenses, individualEarnings: myEarnings };
-    }, [allExpenses, allEarnings, user]);
+        const myCCSpends = allCCSpends.filter(spend => spend.addedBy === user.uid);
+        return { individualExpenses: myExpenses, individualEarnings: myEarnings, individualCCSpends: myCCSpends };
+    }, [allExpenses, allEarnings, allCCSpends, user]);
 
-    const { monthlyExpenses, monthlyEarnings, lastMonthBalance, balance } = useMemo(() => {
+    const { monthlyExpenses, monthlyEarnings, monthlyCCSpends, lastMonthBalance, balance } = useMemo(() => {
         const currentMonth = displayDate.getMonth();
         const currentYear = displayDate.getFullYear();
 
@@ -48,6 +50,11 @@ function IndividualSummary() {
             const earningDate = earning.date.toDate();
             return earningDate.getMonth() === currentMonth && earningDate.getFullYear() === currentYear;
         }).reduce((acc, earning) => acc + earning.amount, 0);
+
+        const currentMonthCCSpends = individualCCSpends.filter(spend => {
+            const spendDate = spend.date.toDate();
+            return spendDate.getMonth() === currentMonth && spendDate.getFullYear() === currentYear;
+        }).reduce((acc, spend) => acc + spend.amount, 0);
         
         const lastMonthExpenses = individualExpenses.filter(expense => {
             const expenseDate = expense.date.toDate();
@@ -66,10 +73,11 @@ function IndividualSummary() {
         return { 
             monthlyExpenses: currentMonthExpenses, 
             monthlyEarnings: currentMonthEarnings, 
+            monthlyCCSpends: currentMonthCCSpends,
             lastMonthBalance: lastMonthEarnings - lastMonthExpenses,
             balance: overallBalance 
         };
-    }, [individualExpenses, individualEarnings, displayDate]);
+    }, [individualExpenses, individualEarnings, individualCCSpends, displayDate]);
     
     const chartData = useMemo(() => {
         const months = Array.from({ length: 6 }, (_, i) => subMonths(new Date(), 5 - i));
@@ -142,7 +150,7 @@ function IndividualSummary() {
         });
    }, [individualEarnings, displayDate]);
 
-    const loading = expensesLoading || earningsLoading || expenseCatLoading || earningCatLoading;
+    const loading = expensesLoading || earningsLoading || expenseCatLoading || earningCatLoading || ccLoading;
     if (loading) {
         return <div className="flex justify-center items-center h-64"><Loader className="h-16 w-16" /></div>;
     }
@@ -193,7 +201,7 @@ function IndividualSummary() {
                     </Button>
                 </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Monthly Earnings</CardTitle>
@@ -210,6 +218,15 @@ function IndividualSummary() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{currencySymbol}{monthlyExpenses.toFixed(2)}</div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">CC Spends</CardTitle>
+                        <CreditCard className="h-4 w-4 text-orange-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{currencySymbol}{monthlyCCSpends.toFixed(2)}</div>
                     </CardContent>
                 </Card>
                 <Card>
