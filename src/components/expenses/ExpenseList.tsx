@@ -11,7 +11,7 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Lock, ChevronLeft, ChevronRight, ArrowDownCircle } from "lucide-react";
+import { Trash2, Lock, ChevronLeft, ChevronRight, ArrowDownCircle, Pencil } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { EditExpenseDialog } from "./EditExpenseDialog";
 
 export function ExpenseList() {
   const { user, family } = useAuth();
@@ -42,6 +43,7 @@ export function ExpenseList() {
   const { data: members, loading: membersLoading } = useFamilyMembers();
   const { toast } = useToast();
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const currencySymbol = useMemo(() => family?.currencySymbol || '₹', [family]);
 
@@ -167,25 +169,35 @@ export function ExpenseList() {
                     </div>
                   </div>
                   {item.addedBy === user?.uid && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" disabled={deleting === item.id}>
-                           {deleting === item.id ? <Loader className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete this expense.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteExpense(item.id)}>Delete</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-muted-foreground hover:text-accent h-8 w-8"
+                        onClick={() => setEditingExpense(item)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" disabled={deleting === item.id}>
+                             {deleting === item.id ? <Loader className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete this expense.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteExpense(item.id)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   )}
                 </div>
                 {index < filteredExpenses.length - 1 && <Separator />}
@@ -194,6 +206,13 @@ export function ExpenseList() {
           </div>
         )}
       </CardContent>
+      {editingExpense && (
+        <EditExpenseDialog
+          expense={editingExpense}
+          open={!!editingExpense}
+          onOpenChange={(open) => !open && setEditingExpense(null)}
+        />
+      )}
     </Card>
   );
 }

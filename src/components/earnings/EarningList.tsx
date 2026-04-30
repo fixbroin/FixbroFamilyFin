@@ -11,7 +11,7 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Lock, ChevronLeft, ChevronRight, ArrowUpCircle } from "lucide-react";
+import { Trash2, Lock, ChevronLeft, ChevronRight, ArrowUpCircle, Pencil } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { EditEarningDialog } from "./EditEarningDialog";
 
 export function EarningList() {
   const { user, family } = useAuth();
@@ -42,6 +43,7 @@ export function EarningList() {
   const { data: members, loading: membersLoading } = useFamilyMembers();
   const { toast } = useToast();
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editingEarning, setEditingEarning] = useState<Earning | null>(null);
 
   const currencySymbol = useMemo(() => family?.currencySymbol || '₹', [family]);
 
@@ -167,25 +169,35 @@ export function EarningList() {
                     </div>
                   </div>
                   {item.addedBy === user?.uid && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" disabled={deleting === item.id}>
-                           {deleting === item.id ? <Loader className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete this earning.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteEarning(item.id)}>Delete</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-muted-foreground hover:text-accent h-8 w-8"
+                        onClick={() => setEditingEarning(item)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" disabled={deleting === item.id}>
+                             {deleting === item.id ? <Loader className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete this earning.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteEarning(item.id)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   )}
                 </div>
                 {index < filteredEarnings.length - 1 && <Separator />}
@@ -194,6 +206,13 @@ export function EarningList() {
           </div>
         )}
       </CardContent>
+      {editingEarning && (
+        <EditEarningDialog
+          earning={editingEarning}
+          open={!!editingEarning}
+          onOpenChange={(open) => !open && setEditingEarning(null)}
+        />
+      )}
     </Card>
   );
 }
