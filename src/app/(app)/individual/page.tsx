@@ -7,7 +7,7 @@ import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories, u
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader } from '@/components/ui/loader';
 import { format, subMonths, getMonth, getYear, startOfMonth, addMonths } from 'date-fns';
-import { TrendingUp, TrendingDown, Wallet, User, ArrowDownCircle, ArrowUpCircle, Lock, MinusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, User, ArrowDownCircle, ArrowUpCircle, Lock, MinusCircle, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
 import type { Expense, Earning } from '@/types';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
