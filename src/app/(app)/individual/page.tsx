@@ -203,7 +203,7 @@ function IndividualSummary() {
                 <Card className="border-emerald-500/20 bg-emerald-500/[0.02]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Monthly Earnings</CardTitle>
-                        <ArrowUpCircle className="h-4 w-4 text-emerald-500" />
+                        <TrendingUp className="h-4 w-4 text-emerald-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-emerald-500">{currencySymbol}{monthlyEarnings.toFixed(2)}</div>
@@ -212,7 +212,7 @@ function IndividualSummary() {
                 <Card className="border-rose-500/20 bg-rose-500/[0.02]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Monthly Expenses</CardTitle>
-                        <ArrowDownCircle className="h-4 w-4 text-rose-500" />
+                        <TrendingDown className="h-4 w-4 text-rose-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-rose-500">{currencySymbol}{monthlyExpenses.toFixed(2)}</div>
