@@ -8,57 +8,59 @@ body {
 
 @layer base {
   :root {
-    --background: 240 11% 95%;
-    --foreground: 240 10% 3.9%;
+    /* Premium Light Theme - Original Purple Brand */
+    --background: 210 20% 98%;
+    --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 259 100% 87%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 259 100% 87%; /* Original Brand Purple */
     --primary-foreground: 259 40% 20%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 14.3% 15%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 8.9% 46.1%;
     --accent: 266 33% 58%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
     --ring: 266 33% 58%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
  
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 266 33% 58%;
+    /* Premium Dark Theme - Original Purple Brand */
+    --background: 224 71% 4%;
+    --foreground: 210 20% 98%;
+    --card: 224 71% 7%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71% 6%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 266 33% 58%; /* Original Brand Purple */
     --primary-foreground: 0 0% 98%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
+    --secondary: 224 71% 12%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 224 71% 12%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 266 33% 58%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 224 71% 15%;
+    --input: 224 71% 15%;
     --ring: 266 33% 58%;
   }
 }
  
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border/60;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
 }
 
@@ -69,5 +71,14 @@ body {
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+  .premium-shadow {
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+  }
+  .dark .premium-shadow {
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  }
+  .glass {
+    @apply bg-background/60 backdrop-blur-md border border-white/10;
   }
 }

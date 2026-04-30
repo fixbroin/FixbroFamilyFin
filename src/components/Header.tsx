@@ -37,23 +37,23 @@ export function Header() {
   ];
 
   return (
-    <header className="bg-card border-b">
+    <header className="sticky top-0 z-50 glass border-b shadow-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/dashboard" className="text-xl font-bold text-primary-foreground font-headline">
+            <Link href="/dashboard" className="text-xl font-bold text-foreground font-headline tracking-tight hover:text-primary transition-colors">
               {appName}
             </Link>
-            <nav className="hidden md:flex items-baseline space-x-4">
+            <nav className="hidden md:flex items-baseline space-x-2">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "px-3 py-2 rounded-md text-sm font-medium",
+                    "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
                     pathname.startsWith(item.href)
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
+                      ? "bg-primary text-primary-foreground shadow-md scale-105"
+                      : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                   )}
                 >
                   {item.label}
