@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SelectionDialog } from "@/components/ui/SelectionDialog";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Plus, Mic } from "lucide-react";
@@ -170,16 +170,13 @@ export function AddExpenseForm() {
             {isSupported && (
               <FormItem>
                 <FormLabel>Voice Input Language</FormLabel>
-                <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {languages.map(lang => (
-                      <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SelectionDialog
+                    title="Select Language"
+                    options={languages}
+                    selectedValue={language}
+                    onSelect={setLanguage}
+                    placeholder="Select language"
+                />
               </FormItem>
             )}
 
@@ -226,18 +223,16 @@ export function AddExpenseForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={categoriesLoading}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                        <SelectionDialog
+                            title="Select Category"
+                            options={categories.map(c => ({ value: c.id, label: c.name }))}
+                            selectedValue={field.value}
+                            onSelect={field.onChange}
+                            disabled={categoriesLoading}
+                            placeholder="Select a category"
+                        />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

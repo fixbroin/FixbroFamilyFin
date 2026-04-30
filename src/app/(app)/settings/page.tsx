@@ -27,11 +27,11 @@ import autoTable from "jspdf-autotable";
 import { format, getMonth, getYear, startOfMonth, endOfMonth } from "date-fns";
 import type { Expense, Earning } from "@/types";
 import { useExpenses, useEarnings, useExpenseCategories, useEarningCategories, useFamilyMembers, useCreditCardSpends } from "@/hooks/useFamilyData";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { currencies } from "@/lib/currencies";
 import Link from "next/link";
 import { ShoppingBag, ChevronRight, ChevronLeft } from "lucide-react";
+import { SelectionDialog } from "@/components/ui/SelectionDialog";
 
 
 const nameFormSchema = z.object({
@@ -382,25 +382,19 @@ function CurrencySettings() {
             <CardContent>
                 <div className="space-y-2">
                     <Label>Family Currency</Label>
-                    <Select
-                        value={family?.currency || 'USD'}
-                        onValueChange={handleCurrencyChange}
+                    <SelectionDialog
+                        title="Select Currency"
+                        description="Choose the currency for your family's finances."
+                        options={currencies.map(c => ({
+                            value: c.code,
+                            label: `${c.code} - ${c.symbol}`,
+                            icon: <span className="text-xl">{c.flag}</span>
+                        }))}
+                        selectedValue={family?.currency || 'USD'}
+                        onSelect={handleCurrencyChange}
                         disabled={loading}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select a currency" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {currencies.map((currency) => (
-                                <SelectItem key={currency.code} value={currency.code}>
-                                    <div className="flex items-center gap-2">
-                                        <span>{currency.flag}</span>
-                                        <span>{currency.code} - {currency.symbol}</span>
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                        placeholder="Select a currency"
+                    />
                 </div>
             </CardContent>
         </Card>
@@ -542,23 +536,19 @@ function NotificationSettings() {
             <CardContent className="space-y-4">
                  <div className="space-y-2">
                     <Label>Notification Sound</Label>
-                     <Select
-                        value={userProfile?.notificationSound || defaultSound}
-                        onValueChange={handleSoundChange}
+                    <SelectionDialog
+                        title="Notification Sound"
+                        description="Select a sound for in-app notifications."
+                        options={availableSounds.map(s => ({
+                            value: s.path,
+                            label: s.name
+                        }))}
+                        selectedValue={userProfile?.notificationSound || defaultSound}
+                        onSelect={handleSoundChange}
                         disabled={loading}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select a sound" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableSounds.map((sound) => (
-                                <SelectItem key={sound.path} value={sound.path}>
-                                    {sound.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <p className="text-sm text-muted-foreground">Select a sound for in-app notifications. The sound will play on selection as a preview.</p>
+                        placeholder="Select a sound"
+                    />
+                    <p className="text-sm text-muted-foreground">The sound will play on selection as a preview.</p>
                 </div>
             </CardContent>
         </Card>
@@ -909,8 +899,20 @@ function ReportSettings() {
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Monthly Expense Report</h3>
                   <div className="flex gap-2 mb-4">
-                    <Select value={dateValues.expenseMonth} onValueChange={dateSetters.expenseMonth}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent></Select>
-                    <Select value={dateValues.expenseYear} onValueChange={dateSetters.expenseYear}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select>
+                    <SelectionDialog
+                        title="Select Month"
+                        options={months}
+                        selectedValue={dateValues.expenseMonth}
+                        onSelect={dateSetters.expenseMonth}
+                        className="flex-1"
+                    />
+                    <SelectionDialog
+                        title="Select Year"
+                        options={years.map(y => ({ value: y, label: y }))}
+                        selectedValue={dateValues.expenseYear}
+                        onSelect={dateSetters.expenseYear}
+                        className="flex-1"
+                    />
                   </div>
                   <Button onClick={() => handleExport('expenses', scope)} disabled={isGenerating === `${scope}-expenses`} className="w-full sm:w-auto">{isGenerating === `${scope}-expenses` ? <Loader/> : "Export Expenses PDF"}</Button>
                 </div>
@@ -918,8 +920,20 @@ function ReportSettings() {
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Monthly Earning Report</h3>
                   <div className="flex gap-2 mb-4">
-                    <Select value={dateValues.earningMonth} onValueChange={dateSetters.earningMonth}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent></Select>
-                    <Select value={dateValues.earningYear} onValueChange={dateSetters.earningYear}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select>
+                    <SelectionDialog
+                        title="Select Month"
+                        options={months}
+                        selectedValue={dateValues.earningMonth}
+                        onSelect={dateSetters.earningMonth}
+                        className="flex-1"
+                    />
+                    <SelectionDialog
+                        title="Select Year"
+                        options={years.map(y => ({ value: y, label: y }))}
+                        selectedValue={dateValues.earningYear}
+                        onSelect={dateSetters.earningYear}
+                        className="flex-1"
+                    />
                   </div>
                   <Button onClick={() => handleExport('earnings', scope)} disabled={isGenerating === `${scope}-earnings`} className="w-full sm:w-auto">{isGenerating === `${scope}-earnings` ? <Loader/> : "Export Earnings PDF"}</Button>
                 </div>
@@ -927,8 +941,20 @@ function ReportSettings() {
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Monthly Credit Card Report</h3>
                   <div className="flex gap-2 mb-4">
-                    <Select value={dateValues.ccMonth} onValueChange={dateSetters.ccMonth}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent></Select>
-                    <Select value={dateValues.ccYear} onValueChange={dateSetters.ccYear}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select>
+                    <SelectionDialog
+                        title="Select Month"
+                        options={months}
+                        selectedValue={dateValues.ccMonth}
+                        onSelect={dateSetters.ccMonth}
+                        className="flex-1"
+                    />
+                    <SelectionDialog
+                        title="Select Year"
+                        options={years.map(y => ({ value: y, label: y }))}
+                        selectedValue={dateValues.ccYear}
+                        onSelect={dateSetters.ccYear}
+                        className="flex-1"
+                    />
                   </div>
                   <Button onClick={() => handleExport('credit-card', scope)} disabled={isGenerating === `${scope}-credit-card`} className="w-full sm:w-auto">{isGenerating === `${scope}-credit-card` ? <Loader/> : "Export Credit Card PDF"}</Button>
                 </div>
@@ -936,8 +962,20 @@ function ReportSettings() {
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Combined Monthly Report</h3>
                   <div className="flex gap-2 mb-4">
-                     <Select value={dateValues.combinedMonth} onValueChange={dateSetters.combinedMonth}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent></Select>
-                     <Select value={dateValues.combinedYear} onValueChange={dateSetters.combinedYear}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select>
+                    <SelectionDialog
+                        title="Select Month"
+                        options={months}
+                        selectedValue={dateValues.combinedMonth}
+                        onSelect={dateSetters.combinedMonth}
+                        className="flex-1"
+                    />
+                    <SelectionDialog
+                        title="Select Year"
+                        options={years.map(y => ({ value: y, label: y }))}
+                        selectedValue={dateValues.combinedYear}
+                        onSelect={dateSetters.combinedYear}
+                        className="flex-1"
+                    />
                   </div>
                   <Button onClick={() => handleExport('combined', scope)} disabled={isGenerating === `${scope}-combined`} className="w-full sm:w-auto">{isGenerating === `${scope}-combined` ? <Loader/> : "Export Combined PDF"}</Button>
                 </div>

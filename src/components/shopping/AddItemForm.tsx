@@ -21,13 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectionDialog } from "@/components/ui/SelectionDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Mic } from "lucide-react";
 import { Loader } from "../ui/loader";
@@ -184,16 +178,13 @@ export function AddItemForm() {
         {isSupported && (
           <FormItem>
             <FormLabel>Voice Input Language</FormLabel>
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger>
-                <SelectValue placeholder="Language" />
-              </SelectTrigger>
-              <SelectContent>
-                {languages.map(lang => (
-                  <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SelectionDialog
+                title="Select Language"
+                options={languages}
+                selectedValue={language}
+                onSelect={setLanguage}
+                placeholder="Select language"
+            />
           </FormItem>
         )}
 
@@ -247,24 +238,15 @@ export function AddItemForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Unit</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a unit" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {units.map((unit) => (
-                      <SelectItem key={unit} value={unit}>
-                        {unit}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                    <SelectionDialog
+                        title="Select Unit"
+                        options={units.map(u => ({ value: u, label: u }))}
+                        selectedValue={field.value}
+                        onSelect={field.onChange}
+                        placeholder="Select a unit"
+                    />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -275,25 +257,16 @@ export function AddItemForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                  disabled={categoriesLoading}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                    <SelectionDialog
+                        title="Select Category"
+                        options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
+                        selectedValue={field.value}
+                        onSelect={field.onChange}
+                        disabled={categoriesLoading}
+                        placeholder="Select a category"
+                    />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

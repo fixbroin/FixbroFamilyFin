@@ -5,7 +5,7 @@ import type { ShoppingItem } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SelectionDialog } from "@/components/ui/SelectionDialog";
 import { format } from "date-fns";
 
 interface SetReminderDialogProps {
@@ -71,16 +71,24 @@ export function SetReminderDialog({ item, onClose, onSave, onClear }: SetReminde
             disabled={(d) => d < new Date(new Date().setDate(new Date().getDate() - 1))}
           />
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium">Time:</p>
-            <Select value={hour} onValueChange={setHour}>
-              <SelectTrigger><SelectValue placeholder="Hour" /></SelectTrigger>
-              <SelectContent>{hours.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}</SelectContent>
-            </Select>
+            <p className="text-sm font-medium shrink-0">Time:</p>
+            <SelectionDialog
+                title="Select Hour"
+                options={hours.map(h => ({ value: h, label: h }))}
+                selectedValue={hour}
+                onSelect={setHour}
+                placeholder="Hour"
+                className="flex-1"
+            />
             <span className="font-bold">:</span>
-             <Select value={minute} onValueChange={setMinute}>
-              <SelectTrigger><SelectValue placeholder="Min" /></SelectTrigger>
-              <SelectContent>{minutes.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-            </Select>
+             <SelectionDialog
+                title="Select Minute"
+                options={minutes.map(m => ({ value: m, label: m }))}
+                selectedValue={minute}
+                onSelect={setMinute}
+                placeholder="Min"
+                className="flex-1"
+            />
           </div>
         </div>
         <DialogFooter className="sm:justify-between">
