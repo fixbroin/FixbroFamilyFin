@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
-import { useCreditCardSpends, useFamilyMembers } from "@/hooks/useFamilyData";
+import { useCreditCardSpends, useFamilyMembers, useExpenseCategories } from "@/hooks/useFamilyData";
 import type { CreditCardSpend } from "@/types";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
 
@@ -39,11 +39,19 @@ export function CreditCardSpendList() {
 
   const { data: spends, loading: spendsLoading } = useCreditCardSpends(startDate, endDate);
   const { data: members, loading: membersLoading } = useFamilyMembers();
+  const { data: categories, loading: categoriesLoading } = useExpenseCategories();
   const { toast } = useToast();
   const [deleting, setDeleting] = useState<string | null>(null);
   const [editingSpend, setEditingSpend] = useState<CreditCardSpend | null>(null);
 
   const currencySymbol = useMemo(() => family?.currencySymbol || '₹', [family]);
+
+  const categoriesMap = useMemo(() => {
+    return categories.reduce((acc, cat) => {
+      acc[cat.id] = cat.name;
+      return acc;
+    }, {} as Record<string, string>);
+  }, [categories]);
 
   const filteredSpends = useMemo(() => {
     if (!user) return [];
@@ -160,7 +168,7 @@ export function CreditCardSpendList() {
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                          <div className="flex items-center gap-2">
                             <span className="bg-muted px-2 py-0.5 rounded-md text-xs font-medium">
-                                Credit Card
+                                {categoriesMap[item.categoryId] || 'Credit Card'}
                             </span>
                         </div>
                          <span className="text-xs">{item.date ? format(item.date.toDate(), "MMM d, yyyy") : 'No date'}</span>

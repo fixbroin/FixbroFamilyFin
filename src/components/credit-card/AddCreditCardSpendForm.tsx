@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { collection, addDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
+import { useExpenseCategories } from "@/hooks/useFamilyData";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { SelectionDialog } from "@/components/ui/SelectionDialog";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Plus } from "lucide-react";
 import { Loader } from "../ui/loader";
@@ -23,12 +25,14 @@ import { cn } from "@/lib/utils";
 const formSchema = z.object({
   name: z.string().min(1, { message: "Item name cannot be empty." }),
   amount: z.coerce.number().min(0.01, { message: "Amount must be greater than 0." }),
+  categoryId: z.string().min(1, { message: "Please select a category." }),
   date: z.date(),
   isPrivate: z.boolean().default(false),
 });
 
 export function AddCreditCardSpendForm() {
   const { user, family, userProfile } = useAuth();
+  const { data: categories, loading: categoriesLoading } = useExpenseCategories();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [profileDefaultsSet, setProfileDefaultsSet] = useState(false);
@@ -38,6 +42,7 @@ export function AddCreditCardSpendForm() {
     defaultValues: {
       name: "",
       amount: undefined,
+      categoryId: "",
       date: new Date(),
       isPrivate: false,
     },
@@ -68,9 +73,9 @@ export function AddCreditCardSpendForm() {
       });
       toast({ title: "Success", description: "Credit card spend added successfully." });
       form.reset({
+        ...form.getValues(),
         name: "",
         amount: undefined,
-        date: new Date(),
         isPrivate: !!userProfile?.defaultCCSpendsToPrivate
       });
     } catch (error) {
@@ -118,6 +123,26 @@ export function AddCreditCardSpendForm() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <FormControl>
+                        <SelectionDialog
+                            title="Select Category"
+                            options={categories.map(c => ({ value: c.id, label: c.name }))}
+                            selectedValue={field.value}
+                            onSelect={field.onChange}
+                            disabled={categoriesLoading}
+                            placeholder="Select a category"
+                        />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="date"

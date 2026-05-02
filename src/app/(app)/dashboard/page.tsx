@@ -149,6 +149,14 @@ function FinancialSummary() {
                 categorySpending[exp.categoryId] = (categorySpending[exp.categoryId] || 0) + exp.amount;
             });
 
+        visibleCCSpends
+            .filter(s => s.date.toDate().getMonth() === currentMonth && s.date.toDate().getFullYear() === currentYear)
+            .forEach(spend => {
+                if (spend.categoryId) {
+                    categorySpending[spend.categoryId] = (categorySpending[spend.categoryId] || 0) + spend.amount;
+                }
+            });
+
         return expenseCategories
             .filter(cat => cat.budget && cat.budget > 0)
             .map(cat => {

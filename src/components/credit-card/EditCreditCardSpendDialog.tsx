@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { doc, updateDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
+import { useExpenseCategories } from "@/hooks/useFamilyData";
 import { format } from "date-fns";
 import type { CreditCardSpend } from "@/types";
 
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { SelectionDialog } from "@/components/ui/SelectionDialog";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Save } from "lucide-react";
 import { Loader } from "@/components/ui/loader";
@@ -37,6 +39,7 @@ import { cn } from "@/lib/utils";
 const formSchema = z.object({
   name: z.string().min(1, { message: "Item name cannot be empty." }),
   amount: z.coerce.number().min(0.01, { message: "Amount must be greater than 0." }),
+  categoryId: z.string().min(1, { message: "Please select a category." }),
   date: z.date(),
   isPrivate: z.boolean(),
 });
@@ -49,6 +52,7 @@ interface EditCreditCardSpendDialogProps {
 
 export function EditCreditCardSpendDialog({ spend, open, onOpenChange }: EditCreditCardSpendDialogProps) {
   const { family } = useAuth();
+  const { data: categories, loading: categoriesLoading } = useExpenseCategories();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -57,6 +61,7 @@ export function EditCreditCardSpendDialog({ spend, open, onOpenChange }: EditCre
     defaultValues: {
       name: spend.name,
       amount: spend.amount,
+      categoryId: spend.categoryId || "",
       date: spend.date.toDate(),
       isPrivate: spend.isPrivate,
     },
@@ -111,6 +116,26 @@ export function EditCreditCardSpendDialog({ spend, open, onOpenChange }: EditCre
                   <FormLabel>Amount</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <FormControl>
+                      <SelectionDialog
+                          title="Select Category"
+                          options={categories.map(c => ({ value: c.id, label: c.name }))}
+                          selectedValue={field.value}
+                          onSelect={field.onChange}
+                          disabled={categoriesLoading}
+                          placeholder="Select a category"
+                      />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -70,6 +70,7 @@ export interface CreditCardSpend {
   id: string;
   name: string;
   amount: number;
+  categoryId: string;
   date: Timestamp;
   addedBy: string; // user uid
   isPrivate: boolean;
